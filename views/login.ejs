@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="User login page with modern styling and responsive design.">
+  <meta name="author" content="Your Name">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex">
+  <title>Login - Panel ETSPM</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+      body {
+          background-color: #f7f9fb;
+          font-size: 14px;
+      }
+      .login-container {
+          max-width: 400px;
+          margin: 50px auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          background: #fff;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .login-title {
+          text-align: center;
+          margin-bottom: 20px;
+          font-weight: bold;
+          font-size: 24px;
+      }
+      .form-control:focus {
+          box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+          border-color: #007bff;
+      }
+      .error-message {
+          color: red;
+          text-align: center;
+          margin-top: 10px;
+      }
+  </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Centered SVG Image -->
+        <div class="text-center mb-3">
+          <img src="https://source.lmnet.cf/inde/EPSTIEN.svg" alt="External SVG Image" width="200" height="130">
+        </div>
+      
+        <!-- Login Title -->
+        <div class="login-title">Login</div>
+        <form method="post">
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+        <% if (typeof error !== "undefined") { %>
+        <p class="error-message"><%= error %></p>
+        <% } %>
+      </div>
+      <div class="footer text-center">
+        —— ©
+        <a href="https://lmnet.cf/" target="_blank" class="text-muted" data-version="2.4.7">lmnet.cf - GGMC</a> ——
+    </div>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

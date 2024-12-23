@@ -5,26 +5,51 @@ const { spawn } = require("child_process");
 const { WebSocketServer } = require("ws");
 const fs = require("fs");
 const path = require("path");
+const cors = require('cors');
+
+const PORT = 80;
+
+const app = express();
+app.use(express.json()); // Parse JSON payloads
+app.use(cors());
+
+const botsFilePath = path.join(__dirname, 'bots.json'); // Path to save bot names
+let bots = []; // Initialize the bots array
+
+
+
+// Load bots from the JSON file during server startup
+if (fs.existsSync(botsFilePath)) {
+  try {
+    const data = fs.readFileSync(botsFilePath, 'utf8');
+    bots = JSON.parse(data);
+    console.log("Bots loaded:", bots);
+  } catch (err) {
+    console.error("Error reading bots.json:", err);
+  }
+}
+
 const serverPropertiesPath = path.join(__dirname, "server", "server.properties");
 const playersFilePath = path.join(__dirname, "players.json");
 let players = {};
+const logs = [];
+const MAX_LOG_COUNT = 100;
+let minecraftProcess = null;
 
-const app = express();
-const PORT = 8080;
-
+// Load players from file
 function loadPlayers() {
   if (fs.existsSync(playersFilePath)) {
     try {
       const data = fs.readFileSync(playersFilePath, "utf-8");
-      players = data.trim() ? JSON.parse(data) : {}; // Check if the file is not empty
+      players = data.trim() ? JSON.parse(data) : {};
       console.log("Loaded players from file:", players);
     } catch (error) {
       console.error("Error parsing players.json:", error);
-      players = {}; // Default to an empty object on error
+      players = {};
     }
   } else {
     console.log("No existing players file found. Starting fresh.");
-    players = {}; // Start with an empty object
+    players = {};
   }
 }
 
@@ -34,38 +59,40 @@ function savePlayers() {
   console.log("Saved players to file.");
 }
 
-// Initialize players from file
-loadPlayers();
-
-// Parse properties helper
+// Parse server.properties content
 function parseProperties(fileContent) {
-  const properties = {};
-  fileContent
+  return fileContent
     .split("\n")
-    .filter((line) => line.trim() && !line.startsWith("#")) // Ignore comments and empty lines
-    .forEach((line) => {
+    .filter((line) => line.trim() && !line.startsWith("#"))
+    .reduce((properties, line) => {
       const [key, value] = line.split("=").map((part) => part.trim());
       properties[key] = value;
-    });
-  return properties;
+      return properties;
+    }, {});
 }
 
-// Helper: Convert an object back to server.properties format
+// Convert object to server.properties format
 function stringifyProperties(properties) {
   return Object.entries(properties)
-    .map(([key, value]) => ${key}=${value})
+    .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 }
 
 // Middleware: Authentication check
 function authRequired(req, res, next) {
-  if (req.session && req.session.loggedIn) {
-    return next();
-  }
+  if (req.session && req.session.loggedIn) return next();
   res.redirect("/login");
 }
 
-// Initialize session
+// Update player status
+function updatePlayerStatus(playerName, status) {
+  players[playerName] = status;
+}
+
+// Initialize players from file
+loadPlayers();
+
+// Middleware setup
 app.use(
   session({
     secret: "minecraft_server_secret", // Change this to a secure value in production
@@ -73,53 +100,30 @@ app.use(
     saveUninitialized: true,
   })
 );
-
-// Middleware setup
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-// Minecraft server process and logs
-let minecraftProcess = null;
-const logs = [];
-const MAX_LOG_COUNT = 100;
+// WebSocket setup
 const wss = new WebSocketServer({ noServer: true });
-
-
 function broadcastLogs(message) {
   const logEntry = typeof message === "object" ? message.message : message;
-
   logs.push(logEntry);
   if (logs.length > MAX_LOG_COUNT) logs.shift();
-
   wss.clients.forEach((client) => {
-    if (client.readyState === client.OPEN) {
-      client.send(logEntry); // Send only the plain string
-    }
+    if (client.readyState === client.OPEN) client.send(logEntry);
   });
 }
-function broadcastLogs(message) {
-  const logEntry = typeof message === "object" ? message.message : message;
-
-  logs.push(logEntry);
-  if (logs.length > MAX_LOG_COUNT) logs.shift();
-
-  wss.clients.forEach((client) => {
-    if (client.readyState === client.OPEN) {
-      client.send(logEntry); // Send the plain log message
-    }
-  });
-}
-
 
 // Routes
-app.get("/", authRequired, (req, res) => {
-  res.redirect("/panel");
+app.get("/", authRequired, (req, res) => res.redirect("/panel"));
+
+app.get("/login", (req, res) => res.render("login"));
+
+app.get('/api/bot/new', authRequired, (req, res) => {
+  res.json(bots); // `bots` should be an array containing your bot data
 });
 
-app.get("/login", (req, res) => {
-  res.render("login");
-});
 
 app.post("/login", (req, res) => {
   const users = {
@@ -127,10 +131,10 @@ app.post("/login", (req, res) => {
     Kormit2000: "Jaymon5654",
     RedstoneProTech: "gab6522736",
     jemqr: "jemargwapo73627",
+    admin: "admin@123"
   };
-
   const { username, password } = req.body;
-  if (users[username] && users[username] === password) {
+  if (users[username] === password) {
     req.session.loggedIn = true;
     req.session.username = username;
     return res.redirect("/panel");
@@ -138,31 +142,109 @@ app.post("/login", (req, res) => {
   res.render("login", { error: "Invalid username or password" });
 });
 
+app.post("/api/bot/new", authRequired, (req, res) => {
+  const { name, version = "1.21.42" } = req.body; // Default version if not provided
+
+  if (!name) return res.status(400).json({ message: "Bot name is required" });
+
+  const exists = bots.some((bot) => bot.name === name);
+  if (exists) return res.status(400).json({ message: "Bot name already exists" });
+
+  // Define the file
+  const folderPath = path.join(__dirname, 'bots');
+  const filePath = path.join(folderPath, `${name}.js`);
+
+  const codeContent = `
+const bedrock = require('bedrock-protocol');
+const client = bedrock.createClient({ 
+  host: 'localhost', 
+  port: 19132, 
+  version: '${version}', 
+  username: '${name}', 
+  offline: false
+});
+console.log('connected');
+console.log('Hit Control C If you want to stop');
+`;
+
+  // Ensure the folder exists
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+
+  // Write the bot file
+  fs.writeFile(filePath, codeContent.trim(), (err) => {
+    if (err) {
+      return res.status(500).json({ message: "Error creating the bot file" });
+    }
+
+    bots.push({ name, status: "offline" }); // Add the bot to the list only on success
+
+    // Save bots to a JSON file to persist between restarts
+    fs.writeFileSync(path.join(__dirname, 'bots.json'), JSON.stringify(bots, null, 2));
+
+    res.status(201).json({ message: "Bot added successfully", bots });
+  });
+});
+
+// Initialize bots from a JSON file on server startup
+if (fs.existsSync(path.join(__dirname, 'bots.json'))) {
+  bots = JSON.parse(fs.readFileSync(path.join(__dirname, 'bots.json')));
+} else {
+  bots = [];
+}
+
+app.post('/api/bots/run', authRequired, (req, res) => {
+  const { name } = req.body;
+  const bot = bots.find((b) => b.name === name);
+
+  if (!bot) {
+    return res.status(404).json({ message: 'Bot not found' });
+  }
+
+  // Simulate running the bot
+  bot.status = 'online';
+  res.json({ message: `Bot ${name} is now running` });
+});
+
+app.delete('/api/bots/:name', authRequired, (req, res) => {
+  const { name } = req.params;
+  const botIndex = bots.findIndex((b) => b.name === name);
+
+  if (botIndex === -1) {
+    return res.status(404).json({ message: 'Bot not found' });
+  }
+
+  // Remove the bot from the list
+  bots.splice(botIndex, 1);
+  res.json({ message: `Bot ${name} has been deleted` });
+});
+
+
+
 app.get("/panel", authRequired, (req, res) => {
   res.render("panel", { username: req.session.username });
 });
-app.get("/bots", authRequired, (req, res) => {
-  res.render("Bots", { username: req.session.username });
-});
-app.get("/command-center", authRequired, (req, res) => {
-  res.render("command-center", { username: req.session.username});
+
+app.get("/bots-panel", authRequired, (req, res) => {
+  res.render("bots-panel", { username: req.session.username });
 });
 
+app.get("/command-center", authRequired, (req, res) => {
+  res.render("command-center", { username: req.session.username });
+});
 
 app.post("/start", authRequired, (req, res) => {
   if (!minecraftProcess) {
     try {
       minecraftProcess = spawn("./bedrock_server", [], {
         cwd: "./server",
-        env: { ...process.env, LD_LIBRARY_PATH: "./server" }, // Ensure the library path is set correctly
+        env: { ...process.env, LD_LIBRARY_PATH: "./server" },
       });
 
-      // Handle server output
       minecraftProcess.stdout.on("data", (data) => {
         const message = data.toString().trim();
-        broadcastLogs([Server]: ${message});
-
-        // Check for server start confirmation
+        broadcastLogs(`[Server]: ${message}`);
         if (message.includes("Server started.")) {
           broadcastLogs("[Server]: Server successfully started.");
           res.send("Server Started");
@@ -170,13 +252,12 @@ app.post("/start", authRequired, (req, res) => {
       });
 
       minecraftProcess.stderr.on("data", (data) => {
-        const error = data.toString().trim();
-        broadcastLogs([Error]: ${error});
+        broadcastLogs(`[Error]: ${data.toString().trim()}`);
       });
 
       minecraftProcess.on("close", (code) => {
-        broadcastLogs([Server]: Minecraft server stopped with code ${code});
-        minecraftProcess = null; // Clear process reference
+        broadcastLogs(`[Server]: Minecraft server stopped with code ${code}`);
+        minecraftProcess = null;
       });
 
       broadcastLogs("[Server]: Starting server...");
@@ -190,129 +271,46 @@ app.post("/start", authRequired, (req, res) => {
   }
 });
 
-
 app.post("/restart", authRequired, (req, res) => {
   if (minecraftProcess) {
     minecraftProcess.stdin.write("stop\n");
-    broadcastLogs([Command]: stop);
+    broadcastLogs("[Command]: stop");
 
-    minecraftProcess.on("close", (code) => {
-      if (code === 0) {
-        minecraftProcess = spawn("./bedrock_server", [], {
-          cwd: "./server",
-          env: { ...process.env, LD_LIBRARY_PATH: "." },
-        });
-        minecraftProcess.stdout.on("data", (data) => {
-          const message = data.toString().trim();
-          broadcastLogs([Server]: ${message});
-  
-          // Check for server start confirmation
-          if (message.includes("Server started.")) {
-            broadcastLogs("[Server]: Server successfully started.");
-            res.send("Server Restarted");
-          }
-        });
+    minecraftProcess.on("close", () => {
+      minecraftProcess = spawn("./bedrock_server", [], {
+        cwd: "./server",
+        env: { ...process.env, LD_LIBRARY_PATH: "./server" },
+      });
 
-        minecraftProcess.stderr.on("data", (data) => {
-          broadcastLogs([Error]: ${data.toString().trim()});
-        });
+      minecraftProcess.stdout.on("data", (data) => {
+        const message = data.toString().trim();
+        broadcastLogs(`[Server]: ${message}`);
+        if (message.includes("Server started.")) {
+          broadcastLogs("[Server]: Server successfully restarted.");
+          res.send("Server Restarted");
+        }
+      });
 
-        broadcastLogs("[Server]: Server Restarting");
-      } else {
-        broadcastLogs([Error]: Server failed to stop (code: ${code}));
-        res.send("Server restart failed.");
-      }
+      minecraftProcess.stderr.on("data", (data) => {
+        broadcastLogs(`[Error]: ${data.toString().trim()}`);
+      });
+
+      broadcastLogs("[Server]: Server Restarting");
     });
   } else {
     broadcastLogs("[Error]: Server is not running");
     res.send("Server is not running.");
   }
-});
-
-// Endpoint to get the list of players
-// Updated players list to include statuses
-
-// Function to update player status (connected/disconnected)
-function updatePlayerStatus(playerName, status) {
-  const player = players.find((p) => p.name === playerName);
-  if (player) {
-    player.status = status; // Update status
-  } else if (status === "connected") {
-    players.push({ name: playerName, status }); // Add new player
-  }
-}
-
-// Fetch player list logic in /getPlayers
-// Persist player status here { playerName: status }
-
-app.get("/getPlayers", authRequired, (req, res) => {
-  if (minecraftProcess) {
-    // Process connection logs
-    logs.forEach((log) => {
-      // Detect "Player connected"
-      const connectMatch = log.match(/Player connected: (.+?), xuid:/); // Adjust regex as needed
-      if (connectMatch) {
-        const playerName = connectMatch[1];
-        players[playerName] = "connected"; // Update status to connected
-      }
-
-      // Detect "Player disconnected"
-      const disconnectMatch = log.match(/Player disconnected: (.+?), xuid:/); // Adjust regex as needed
-      if (disconnectMatch) {
-        const playerName = disconnectMatch[1];
-        players[playerName] = "disconnected"; // Update status to disconnected
-      }
-
-      // Detect "Player disconnected when server is shutdown"
-      const serverOffMatch = log.match(/Server stop requested\./); // Adjust regex as needed
-      if (serverOffMatch) {
-        // Mark all players as disconnected
-        Object.keys(players).forEach((playerName) => {
-          players[playerName] = "disconnected";
-        });
-      }
-    });
-
-    // Save players to file after processing logs
-    savePlayers();
-
-    // Respond with all players and their statuses
-    const playerList = Object.entries(players).map(([name, status]) => ({
-      name,
-      status,
-    }));
-
-    res.json(playerList);
-  } else {
-    res.status(500).json({ error: "Server is not running" });
-  }
-});
-
-
-
-
-
-app.post("/command", authRequired, (req, res) => {
-  const command = req.body.command;
-  if (minecraftProcess) {
-    minecraftProcess.stdin.write(${command}\n);
-    broadcastLogs([Command]: ${command});
-  } else {
-    broadcastLogs("[Error]: Server is not running");
-    res.send("Server is not running.");
-  } 
 });
 
 app.post("/stop", authRequired, (req, res) => {
   if (minecraftProcess) {
-    // Send stop command
     minecraftProcess.stdin.write("stop\n");
-    broadcastLogs([Command]: stop);
+    broadcastLogs("[Command]: stop");
 
-    // Wait for the process to close
     minecraftProcess.on("close", (code) => {
-      broadcastLogs([Server]: Minecraft server stopped with code ${code});
-      minecraftProcess = null; // Reset the process variable
+      broadcastLogs(`[Server]: Minecraft server stopped with code ${code}`);
+      minecraftProcess = null;
       res.send("Server stopped successfully.");
     });
   } else {
@@ -321,12 +319,41 @@ app.post("/stop", authRequired, (req, res) => {
   }
 });
 
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/login");
-  });
+app.get("/getPlayers", authRequired, (req, res) => {
+  if (minecraftProcess) {
+    logs.forEach((log) => {
+      const connectMatch = log.match(/Player connected: (.+?), xuid:/);
+      if (connectMatch) updatePlayerStatus(connectMatch[1], "connected");
+
+      const disconnectMatch = log.match(/Player disconnected: (.+?), xuid:/);
+      if (disconnectMatch) updatePlayerStatus(disconnectMatch[1], "disconnected");
+
+      if (log.match(/Server stop requested\./)) {
+        Object.keys(players).forEach((playerName) => {
+          players[playerName] = "disconnected";
+        });
+      }
+    });
+
+    savePlayers();
+    res.json(
+      Object.entries(players).map(([name, status]) => ({ name, status }))
+    );
+  } else {
+    res.status(500).json({ error: "Server is not running" });
+  }
 });
 
+app.post("/command", authRequired, (req, res) => {
+  const command = req.body.command;
+  if (minecraftProcess) {
+    minecraftProcess.stdin.write(`${command}\n`);
+    broadcastLogs(`[Command]: ${command}`);
+  } else {
+    broadcastLogs("[Error]: Server is not running");
+    res.send("Server is not running.");
+  }
+});
 
 app.get("/editserver-properties", authRequired, (req, res) => {
   try {
@@ -342,27 +369,26 @@ app.post("/editserver-properties", authRequired, (req, res) => {
   try {
     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
     const properties = parseProperties(fileContent);
-
     const editableKeys = ["difficulty", "view-distance", "gamemode", "max-players"];
+
     editableKeys.forEach((key) => {
-      if (req.body[key] !== undefined) {
-        properties[key] = req.body[key];
-      }
+      if (req.body[key] !== undefined) properties[key] = req.body[key];
     });
 
     fs.writeFileSync(serverPropertiesPath, stringifyProperties(properties), "utf-8");
-
-    // Respond with JSON success message
     res.json({ success: true, message: "Server properties updated successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error updating server.properties file" });
   }
 });
 
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/login"));
+});
 
 // WebSocket handling
 const server = app.listen(PORT, () => {
-  console.log(App running at http://localhost:${PORT});
+  console.log(`App running at http://localhost:${PORT}`);
 });
 
 server.on("upgrade", (req, socket, head) => {

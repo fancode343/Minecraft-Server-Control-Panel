@@ -1,0 +1,561 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Panel</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    #logs {
+      width: 100%;
+      height: 400px;
+      overflow-y: scroll;
+      background: #000;
+      color: #0f0;
+      padding: 10px;
+      border: 1px solid #333;
+      font-family: monospace;
+    }
+    #playerContainer {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .player {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .player-avatar {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: url('https://i.pinimg.com/736x/3d/4a/5b/3d4a5b43754727abdcdf23e224545e7b.jpg') no-repeat center center;
+      background-size: cover;
+      cursor: pointer;
+      border: 2px solid #333;
+    }
+
+    .player-name {
+      margin-top: 5px;
+      font-size: 12px;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .context-menu {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      background: #343a40;
+      border-radius: 5px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    .context-menu button {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+
+    .context-menu button:hover {
+      background: #495057;
+    }
+
+    .status-indicator {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    /* Modal Styles */
+    .custom-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .custom-modal-content {
+      background-color: #343a40;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .custom-modal-content h3 {
+      margin-bottom: 15px;
+    }
+
+    .custom-modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #495057;
+      border-radius: 5px;
+      background-color: #495057;
+      color: white;
+    }
+
+    .custom-modal-content button {
+      margin: 5px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .custom-modal-content .btn-submit {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .custom-modal-content .btn-submit:hover {
+      background-color: #218838;
+    }
+
+    .custom-modal-content .btn-cancel {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .custom-modal-content .btn-cancel:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top mb-4">
+    <a class="navbar-brand" href="#">EpsteinSMP</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item"><a class="nav-link" href="/panel">Panel</a></li>
+        <li class="nav-item"><a class="nav-link" href="/bots-panel">Bots</a></li>
+        <li class="nav-item"><a class="nav-link" href="/command-center">Command</a></li>
+        <li class="nav-item"><a class="nav-link" href="/editserver-properties">Edit Server Properties</a></li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-user-circle"></i> <%= username %>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right bg-dark text-white" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item text-white" href="?p=&settings=1">Settings</a>
+            <a class="dropdown-item text-white" href="?p=&help=2">Help</a>
+            <a class="dropdown-item text-white" href="/logout">Sign Out</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h1>Welcome, <%= username %>!</h1>
+    <div class="btn-group mb-4">
+      <div class="d-flex align-items-center">
+        <button id="startButton" class="btn btn-success">Start Server</button>
+        <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
+        <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="restartButton" class="btn btn-warning">Restart Server</button>
+        <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
+        <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="stopButton" class="btn btn-danger">Stop Server</button>
+        <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
+        <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+    </div>
+
+
+    <h2>Players-Status</h2>
+    <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"></div>
+  </div>
+
+  <!-- Modals -->
+  <div id="customModal" class="custom-modal">
+    <div class="custom-modal-content">
+      <h3 id="modalTitle">Action Title</h3>
+      <input type="text" id="modalInput" placeholder="Enter your input here..." />
+      <div>
+        <button class="btn-submit" id="submitModal">Submit</button>
+        <button class="btn-cancel" id="cancelModal">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="customModal1" class="custom-modal">
+    <div class="custom-modal-content">
+      <h3>This Player is offline</h3>
+    </div>
+  </div>
+
+  <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="responseModalLabel">Server Response</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body" id="responseModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+ 
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const logContainer = document.getElementById("logs");
+  const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
+
+  /**
+   * Display the response modal with a given message.
+   * @param {string} message - The message to display in the modal.
+   */
+  function showModal(message) {
+    document.getElementById("responseModalBody").innerText = message;
+    responseModal.show();
+  }
+
+  /**
+   * Toggle the loading state for buttons.
+   * @param {string} buttonId - The ID of the button.
+   * @param {string} spinnerId - The ID of the spinner.
+   * @param {string} checkId - The ID of the check icon.
+   * @param {boolean} isLoading - Whether the button is in a loading state.
+   */
+  function toggleLoading(buttonId, spinnerId, checkId, isLoading) {
+    const button = document.getElementById(buttonId);
+    const spinner = document.getElementById(spinnerId);
+    const check = document.getElementById(checkId);
+
+    if (isLoading) {
+      button.disabled = true;
+      spinner.style.display = "inline-block";
+      check.style.display = "none";
+    } else {
+      button.disabled = false;
+      spinner.style.display = "none";
+      check.style.display = "inline-block";
+
+      // Remove the check icon after 5 seconds
+      setTimeout(() => {
+        check.style.display = "none";
+      }, 5000);
+    }
+  }
+
+  /**
+   * Handle server actions with loading states.
+   * @param {string} buttonId - The button's ID.
+   * @param {string} spinnerId - The spinner's ID.
+   * @param {string} checkId - The check icon's ID.
+   * @param {string} url - The endpoint to call.
+   * @param {string} successMessage - The message to log on success.
+   */
+  function sendServerAction(buttonId, spinnerId, checkId, url, successMessage) {
+    toggleLoading(buttonId, spinnerId, checkId, true);
+
+    fetch(url, { method: "POST" })
+      .then((response) => response.text())
+      .then((result) => {
+        showModal(result);
+        console.log(successMessage);
+        toggleLoading(buttonId, spinnerId, checkId, false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showModal("An error occurred while processing your request.");
+        toggleLoading(buttonId, spinnerId, checkId, false);
+      });
+  }
+
+  /**
+   * Append a log entry to the log container.
+   * @param {string} logEntry - The log entry to append.
+   */
+  function appendLog(logEntry) {
+    const logLine = document.createElement("div");
+
+    try {
+      const parsedLog = JSON.parse(logEntry);
+      logLine.textContent = Array.isArray(parsedLog)
+        ? parsedLog.join("\n")
+        : JSON.stringify(parsedLog, null, 2);
+    } catch {
+      logLine.textContent = logEntry;
+    }
+
+    logLine.style.whiteSpace = "pre-wrap";
+    logContainer.appendChild(logLine);
+
+    // Limit visible logs to the latest 100 entries
+    if (logContainer.children.length > 100) {
+      logContainer.removeChild(logContainer.firstChild);
+    }
+
+    logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to bottom
+  }
+
+  /**
+   * Send a command to the server.
+   * @param {string} command - The command to send.
+   */
+  function sendCommand(command) {
+    fetch("/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `command=${encodeURIComponent(command)}`,
+    })
+      .then((response) => response.text())
+      .then((result) => {
+        document.getElementById("commandInput").value = "";
+        showModal(result);
+      })
+      .catch(() => showModal("An error occurred while processing your command."));
+  }
+
+  // WebSocket setup for live logs
+  const socket = new WebSocket(
+    `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
+  );
+
+  socket.onopen = () => console.log("WebSocket connection established");
+  socket.onmessage = (event) => appendLog(event.data);
+  socket.onerror = (error) => console.error("WebSocket error:", error);
+  socket.onclose = () => console.log("WebSocket connection closed");
+
+  // Event listeners for server action buttons
+  document.getElementById("startButton").addEventListener("click", () => {
+    sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
+  });
+
+  document.getElementById("restartButton").addEventListener("click", () => {
+    sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
+  });
+
+  document.getElementById("stopButton").addEventListener("click", () => {
+    sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
+  });
+
+  // Event listener for the command form
+  document.getElementById("commandForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const command = document.getElementById("commandInput").value;
+    sendCommand(command);
+  });
+});
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+ const playerContainer = document.getElementById("playerContainer");
+
+ // Modal variables
+ const modal = document.getElementById("customModal");
+ const modalTitle = document.getElementById("modalTitle");
+ const modalInput = document.getElementById("modalInput");
+ const submitButton = document.getElementById("submitModal");
+ const cancelButton = document.getElementById("cancelModal");
+
+ let currentAction = null;
+ let currentPlayer = null;
+
+ // Show the custom modal
+ function showModal(action, playerName) {
+   currentAction = action;
+   currentPlayer = playerName;
+
+   if (action === "kick") {
+     modalTitle.textContent = `Kick ${playerName}`;
+     modalInput.placeholder = "Enter the reason for kicking...";
+   } else if (action === "message") {
+     modalTitle.textContent = `Message ${playerName}`;
+     modalInput.placeholder = "Enter your message...";
+   }
+
+   modalInput.value = "";
+   modal.style.display = "flex";
+ }
+
+ // Handle modal submit
+ function handleModalSubmit() {
+   const inputValue = modalInput.value.trim();
+   if (!inputValue) {
+     alert("Input cannot be empty.");
+     return;
+   }
+
+   if (currentAction === "kick") {
+     handleCommand(`kick "${currentPlayer}"" ${inputValue}`);
+   } else if (currentAction === "message") {
+     handleCommand(`title "${currentPlayer}" title ${inputValue}`);
+   }
+
+   closeModal();
+ }
+
+ // Close the modal
+ function closeModal() {
+   modal.style.display = "none";
+   currentAction = null;
+   currentPlayer = null;
+ }
+
+ // Attach event listeners to modal buttons
+ submitButton.addEventListener("click", handleModalSubmit);
+ cancelButton.addEventListener("click", closeModal);
+
+ // Close the modal on outside click
+ window.addEventListener("click", (event) => {
+   if (event.target === modal) {
+     closeModal();
+   }
+ });
+
+ // Fetch the player list from the server
+ async function fetchPlayerList() {
+   try {
+     const response = await fetch("/getPlayers");
+     if (response.ok) {
+       const playerList = await response.json();
+       updatePlayerList(playerList);
+     } else {
+       console.error("Failed to fetch player list:", response.statusText);
+     }
+   } catch (error) {
+     console.error("Error fetching player list:", error);
+   }
+ }
+
+ // Update the player list and re-render the UI
+ function updatePlayerList(playerList) {
+   playerContainer.innerHTML = ""; // Clear the container
+   playerList.forEach((player) => {
+     const playerWrapper = document.createElement("div");
+     playerWrapper.className = "player";
+
+     const avatar = document.createElement("div");
+     avatar.className = "player-avatar";
+     avatar.style.backgroundImage =
+       "url('https://i.pinimg.com/736x/3d/4a/5b/3d4a5b43754727abdcdf23e224545e7b.jpg')";
+
+     const statusIndicator = document.createElement("div");
+     statusIndicator.className = "status-indicator";
+     statusIndicator.style.backgroundColor =
+       player.status === "connected" ? "green" : "red";
+
+     const contextMenu = document.createElement("div");
+     contextMenu.className = "context-menu";
+
+     if (player.status === "connected") {
+       const kickButton = document.createElement("button");
+       kickButton.innerText = "Kick";
+       kickButton.onclick = () => showModal("kick", player.name);
+       contextMenu.appendChild(kickButton);
+
+       const opButton = document.createElement("button");
+       opButton.innerText = "Op";
+       opButton.onclick = () => handleCommand(`op "${player.name}"`);
+       contextMenu.appendChild(opButton);
+
+       const deopButton = document.createElement("button");
+       deopButton.innerText = "Deop";
+       deopButton.onclick = () => handleCommand(`deop "${player.name}"`);
+       contextMenu.appendChild(deopButton);
+
+       const messageButton = document.createElement("button");
+       messageButton.innerText = "Message";
+       messageButton.onclick = () => showModal("message", player.name);
+       contextMenu.appendChild(messageButton);
+     } else {
+       const messageButton = document.createElement("button");
+       messageButton.innerText = "Offline";
+       contextMenu.appendChild(messageButton);
+     }
+
+     avatar.appendChild(contextMenu);
+     avatar.appendChild(statusIndicator);
+
+     avatar.addEventListener("click", (e) => {
+       e.stopPropagation();
+       document
+         .querySelectorAll(".context-menu")
+         .forEach((menu) => (menu.style.display = "none"));
+       contextMenu.style.display =
+         contextMenu.style.display === "block" ? "none" : "block";
+     });
+
+     const playerName = document.createElement("div");
+     playerName.className = "player-name";
+     playerName.innerText = player.name;
+
+     playerWrapper.appendChild(avatar);
+     playerWrapper.appendChild(playerName);
+     playerContainer.appendChild(playerWrapper);
+   });
+ }
+
+ function handleCommand(command) {
+   fetch("/command", {
+     method: "POST",
+     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+     body: `command=${encodeURIComponent(command)}`,
+   })
+     .then((response) => response.text())
+     .catch((error) => console.error("Error sending command:", error));
+ }
+
+ fetchPlayerList();
+ setInterval(fetchPlayerList, 5000);
+
+ document.addEventListener("click", () => {
+   document
+     .querySelectorAll(".context-menu")
+     .forEach((menu) => (menu.style.display = "none"));
+ });
+
+});
+
+ </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Server Properties</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+       body {
+      font-family: Arial, sans-serif;
+      padding: 3px;
+    }
+    #message {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f0f0f0;
+      display: none;
+    }
+    #message.success { border-color: green; color: green; }
+    #message.error { border-color: red; color: red; }
+  </style>
+</head>
+<body>
+    <div style="padding: 20px; background-color: #f8f9fa; text-align: center; border-bottom: 1px solid #ddd;">
+        <a href="/panel" style="margin-right: 20px; padding: 10px 20px; text-decoration: none; background-color: #28a745; color: white; border-radius: 5px;">Panel</a>
+        <a href="/editserver-properties" style="padding: 10px 20px; text-decoration: none; background-color: #007bff; color: white; border-radius: 5px;">Edit Server Properties</a>
+      </div>
+  <h1>Edit Server Properties</h1>
+  <div id="message"></div>
+  <form id="properties-form">
+    <% for (const key in properties) { %>
+      <div>
+        <label for="<%= key %>"><%= key %>:</label>
+        <input type="text" id="<%= key %>" name="<%= key %>" value="<%= properties[key] %>">
+      </div>
+    <% } %>
+    <button type="submit">Save</button>
+  </form>
+
+  <script>
+    $(document).ready(function() {
+      $("#properties-form").on("submit", function(e) {
+        e.preventDefault(); // Prevent form from submitting normally
+
+        const formData = $(this).serialize(); // Collect form data
+
+        $.ajax({
+          url: "/editserver-properties",
+          method: "POST",
+          data: formData,
+          success: function(response) {
+            if (response.success) {
+              $("#message")
+                .text(response.message)
+                .addClass("success")
+                .removeClass("error")
+                .slideDown();
+            } else {
+              $("#message")
+                .text(response.message)
+                .addClass("error")
+                .removeClass("success")
+                .slideDown();
+            }
+          },
+          error: function() {
+            $("#message")
+              .text("An unexpected error occurred.")
+              .addClass("error")
+              .removeClass("success")
+              .slideDown();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
