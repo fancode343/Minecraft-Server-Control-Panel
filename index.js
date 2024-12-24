@@ -120,9 +120,11 @@ app.get("/", authRequired, (req, res) => res.redirect("/panel"));
 
 app.get("/login", (req, res) => res.render("login"));
 
-app.get('/api/bot/new', authRequired, (req, res) => {
+app.get('/api/bots/new/', authRequired, (req, res) => {
   res.json(bots); // `bots` should be an array containing your bot data
 });
+
+app.use('/assets', express.static(path.join(__dirname, 'assets' )));
 
 
 app.post("/login", (req, res) => {
@@ -143,7 +145,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/api/bot/new", authRequired, (req, res) => {
-  const { name, version = "1.21.42" } = req.body; // Default version if not provided
+  const { name, version = "1.21.50" } = req.body; // Default version if not provided
 
   if (!name) return res.status(400).json({ message: "Bot name is required" });
 
@@ -156,15 +158,62 @@ app.post("/api/bot/new", authRequired, (req, res) => {
 
   const codeContent = `
 const bedrock = require('bedrock-protocol');
+const readline = require('readline');
+
+// Create the client
 const client = bedrock.createClient({ 
   host: 'localhost', 
   port: 19132, 
   version: '${version}', 
   username: '${name}', 
-  offline: false
+  offline: true,
 });
-console.log('connected');
-console.log('Hit Control C If you want to stop');
+
+console.log("Connecting...");
+
+// Handle spawn event
+client.on('spawn', () => {
+  console.log("Online");
+});
+
+// Handle disconnection
+client.on('disconnect', (reason) => {
+  console.error("Disconnected");
+  cleanupAndExit(); // Call cleanup when disconnected
+});
+
+// Handle connection close
+client.on('close', (reason) => {
+  console.error("Connection closed:");
+  cleanupAndExit(); // Call cleanup when connection is closed
+});
+
+// Setup readline interface for manual stop
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+rl.on('line', (input) => {
+  if (input.trim().toLowerCase() === 'stop') {
+    console.log('Stopping the process...');
+    cleanupAndExit();
+  }
+});
+
+// Cleanup and exit function
+function cleanupAndExit() {
+  console.log('Cleaning up resources before exit...');
+  client.removeAllListeners(); // Remove all client listeners
+  client.disconnect('Client stopping as requested.'); // Send disconnect message
+  rl.close(); // Close the readline interface
+
+  // Wait briefly before exiting
+  setTimeout(() => {
+    console.log('Exiting...');
+    process.exit(0); // Terminate the process
+  }, 1000);
+}
 `;
 
   // Ensure the folder exists
@@ -279,6 +328,34 @@ app.post('/api/bots/stop/:name', authRequired, (req, res) => {
   } else {
     res.status(404).json({ message: `Bot ${name} is not running` });
   }
+});
+
+app.delete('/api/bots/:name', authRequired, (req, res) => {
+  const { name } = req.params;
+  const folderPath = path.join(__dirname, 'bots');
+  const filePath = path.join(folderPath, `${name}.js`);
+
+  // Check if the bot exists
+  const botIndex = bots.findIndex((bot) => bot.name === name);
+  if (botIndex === -1) {
+    return res.status(404).json({ message: 'Bot not found' });
+  }
+
+  // Remove the file
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath); // Delete the bot's file
+    } catch (error) {
+      console.error('Error deleting bot file:', error);
+      return res.status(500).json({ message: 'Error deleting the bot file' });
+    }
+  }
+
+  // Remove the bot from the array and update the bots.json file
+  bots.splice(botIndex, 1);
+  fs.writeFileSync(path.join(__dirname, 'bots.json'), JSON.stringify(bots, null, 2));
+
+  res.json({ message: 'Bot deleted successfully' });
 });
 
 
@@ -410,11 +487,17 @@ app.get("/editserver-properties", authRequired, (req, res) => {
   try {
     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
     const properties = parseProperties(fileContent);
-    res.render("editserver-properties", { properties });
+
+    // Combine `properties` and `username` into a single object
+    res.render("editserver-properties", {
+      properties,
+      username: req.session.username || "Admin", // Provide a default value if `username` is undefined
+    });
   } catch (error) {
     res.status(500).send("Error reading server.properties file");
   }
 });
+
 
 app.post("/editserver-properties", authRequired, (req, res) => {
   try {

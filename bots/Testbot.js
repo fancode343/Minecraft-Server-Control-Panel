@@ -7,7 +7,7 @@ const client = bedrock.createClient({
   port: 19132,
   version: '1.21.50',
   username: 'claire',
-  offline: false,
+  offline: true,
 });
 
 let targetPlayerId = null; // Store the runtime ID of the target player
