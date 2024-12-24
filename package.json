@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "archiver": "^7.0.1",
+    "bedrock-protocol": "^3.42.2",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "cron": "^3.3.1",

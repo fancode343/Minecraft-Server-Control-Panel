@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const cors = require('cors');
 
-const PORT = 80;
+const PORT = 3000;
 
 const app = express();
 app.use(express.json()); // Parse JSON payloads
@@ -194,32 +194,6 @@ if (fs.existsSync(path.join(__dirname, 'bots.json'))) {
   bots = [];
 }
 
-app.post('/api/bots/run', authRequired, (req, res) => {
-  const { name } = req.body;
-  const bot = bots.find((b) => b.name === name);
-
-  if (!bot) {
-    return res.status(404).json({ message: 'Bot not found' });
-  }
-
-  // Simulate running the bot
-  bot.status = 'online';
-  res.json({ message: `Bot ${name} is now running` });
-});
-
-app.delete('/api/bots/:name', authRequired, (req, res) => {
-  const { name } = req.params;
-  const botIndex = bots.findIndex((b) => b.name === name);
-
-  if (botIndex === -1) {
-    return res.status(404).json({ message: 'Bot not found' });
-  }
-
-  // Remove the bot from the list
-  bots.splice(botIndex, 1);
-  res.json({ message: `Bot ${name} has been deleted` });
-});
-
 
 
 app.get("/panel", authRequired, (req, res) => {
@@ -233,6 +207,83 @@ app.get("/bots-panel", authRequired, (req, res) => {
 app.get("/command-center", authRequired, (req, res) => {
   res.render("command-center", { username: req.session.username });
 });
+
+let runningProcesses = {}; // Track running bot processes
+
+app.post('/api/bots/run/:name', authRequired, (req, res) => {
+  const { name } = req.params;
+  const BotPath = path.join(__dirname, 'bots');
+  const filePath = path.join(BotPath, `${name}.js`);
+  const bot = bots.find((b) => b.name === name);
+
+  if (!bot) {
+    return res.status(404).json({ message: 'Bot not found' });
+  }
+
+  if (!runningProcesses[name]) {
+    try {
+      // Spawn the bot process
+      const runbotProcess = spawn('node', [filePath], {
+        cwd: BotPath,
+      });
+
+      // Handle stdout
+      runbotProcess.stdout.on('data', (data) => {
+        const message = data.toString().trim();
+        bot.status = message;
+        console.log(`Bot stdout (${name}): ${message}`);
+      });
+
+      // Handle stderr
+      runbotProcess.stderr.on('data', (data) => {
+        const message = data.toString().trim();
+        bot.status = `Error: ${message}`;
+        console.error(`Bot stderr (${name}): ${message}`);
+      });
+
+      // Handle process exit
+      runbotProcess.on('close', (code) => {
+        bot.status = `Bot disconnected (exit code: ${code})`;
+        delete runningProcesses[name]; // Cleanup process tracking
+        console.log(`Bot process (${name}) closed with code: ${code}`);
+      });
+
+      // Store the process in the tracker
+      runningProcesses[name] = runbotProcess;
+      bot.status = 'Bot is joining';
+      res.json({ message: `Bot ${name} is now running` });
+    } catch (error) {
+      console.error('Error starting the bot:', error);
+      return res.status(500).json({ message: 'Error starting the bot' });
+    }
+  } else {
+    res.json({ message: `Bot ${name} is already running` });
+  }
+});
+
+app.post('/api/bots/stop/:name', authRequired, (req, res) => {
+  const { name } = req.params;
+  const runbotProcess = runningProcesses[name];
+
+  if (runbotProcess) {
+    try {
+      // Signal the bot process to stop
+      runbotProcess.stdin.write('stop\n'); // Ensure your bot script listens for this
+      runbotProcess.kill(); // Kill the process if necessary
+      delete runningProcesses[name]; // Cleanup
+      res.json({ message: `Bot ${name} has been stopped` });
+    } catch (error) {
+      console.error('Error stopping the bot:', error);
+      return res.status(500).json({ message: 'Error stopping the bot' });
+    }
+  } else {
+    res.status(404).json({ message: `Bot ${name} is not running` });
+  }
+});
+
+
+
+
 
 app.post("/start", authRequired, (req, res) => {
   if (!minecraftProcess) {
@@ -250,7 +301,7 @@ app.post("/start", authRequired, (req, res) => {
           res.send("Server Started");
         }
       });
-
+     
       minecraftProcess.stderr.on("data", (data) => {
         broadcastLogs(`[Error]: ${data.toString().trim()}`);
       });

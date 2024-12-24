@@ -69,8 +69,39 @@
     </div>
 
     <h2>Bots</h2>
-    
-    <h1 style="color: red;" align="center"> Under Development</h1>
+    <div class="header">
+      <div class="avatar"></div>
+      <h3>Manage Bots</h3>
+      <button class="btn btn-primary" data-toggle="modal" data-target="#botModal">Add Bot</button>
+    </div>
+  
+    <div id="botsList"></div>
+  
+    <!-- Modal for adding/editing a bot -->
+    <div class="modal fade" id="botModal" tabindex="-1" role="dialog" aria-labelledby="botModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="botModalLabel">Add Bot</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="botNameInput">Bot Name</label>
+              <input type="text" class="form-control" id="botNameInput" placeholder="Enter bot name">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="sendDataToBackend()">Save Bot</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -90,7 +121,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
  
-  <script>
+  <script> //BUTTON FUNCTION
 document.addEventListener("DOMContentLoaded", () => {
   const logContainer = document.getElementById("logs");
   const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
@@ -233,6 +264,146 @@ document.addEventListener("DOMContentLoaded", () => {
     
   });
 });
+</script>
+
+<script> //BOTS FUNCTION
+  const sendDataToBackend = async () => {
+const name = document.getElementById('botNameInput').value.trim();
+if (!name) {
+  alert("Please enter a bot name.");
+  return;
+}
+
+try {
+  const response = await fetch("/api/bot/new", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    alert(errorData.message || "Failed to add bot");
+    return;
+  }
+
+  const result = await response.json();
+  alert(result.message || "Bot added successfully");
+  closeAddBotModal(); // Close modal on success
+  renderBots(result.bots); // Update the bot list
+} catch (error) {
+  console.error("Error sending data:", error);
+  alert("Failed to add bot. Check the console for details.");
+}
+};
+
+// Render bots dynamically
+const renderBots = (bots) => {
+const botsList = document.getElementById('botsList');
+botsList.innerHTML = '';
+
+bots.forEach((bot) => {
+  const botElement = document.createElement('div');
+  botElement.classList.add('bot');
+  botElement.innerHTML = `
+    <h4>${bot.name}</h4>
+    <p>Status: <span class="${bot.status === 'online' ? 'text-success' : 'text-danger'}">${bot.status}</span></p>
+    <button class="btn btn-warning" onclick="runBot('${bot.name}')">Run</button>
+    <button class="btn btn-warning" onclick="stopBot('${bot.name}')">Stop</button>
+    <button class="btn btn-danger" onclick="deleteBot('${bot.name}')">Delete</button>
+  `;
+  botsList.appendChild(botElement);
+});
+};
+
+// Fetch bots on page load
+const fetchBots = () => {
+fetch('/api/bots/new')
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then((bots) => {
+    const botsList = document.getElementById('botsList');
+    botsList.innerHTML = '';
+
+    bots.forEach((bot) => {
+      const botElement = document.createElement('div');
+      botElement.classList.add('bot');
+      botElement.innerHTML = `
+        <h4>${bot.name}</h4>
+        <p>Status: <span class="${bot.status === 'online' ? 'text-success' : 'text-danger'}">${bot.status}</span></p>
+        <button class="btn btn-warning" onclick="runBot('${bot.name}')">Run</button>
+        <button class="btn btn-warning" onclick="stopBot('${bot.name}')">Stop</button>
+        <button class="btn btn-danger" onclick="deleteBot('${bot.name}')">Delete</button>
+      `;
+      botsList.appendChild(botElement);
+    });
+  })
+  .catch((error) => {
+    console.error("Error fetching bots:", error);
+  });
+};
+
+document.addEventListener('DOMContentLoaded', fetchBots); 
+
+function runBot(botName) {
+fetch('/api/bots/run/${botName}', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: botName }),
+})
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    alert(data.message || 'Bot started successfully');
+    fetchBots(); // Refresh the bot list
+  })
+  .catch((error) => {
+    console.error('Error running bot:', error);
+    alert('Failed to start the bot.');
+  });
+}
+
+function stopBot(botName) {
+fetch('/api/bots/stop', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: botName }),
+})
+alert('Bot stop successfully');
+fetchBots(); 
+}
+
+function deleteBot(botName) {
+fetch(`/api/bots/${botName}`, {
+  method: 'DELETE',
+})
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    alert(data.message || 'Bot deleted successfully');
+    fetchBots(); // Refresh the bot list
+  })
+  .catch((error) => {
+    console.error('Error deleting bot:', error);
+    alert('Failed to delete the bot.');
+  });
+}
+
+  document.addEventListener('DOMContentLoaded', fetchBots);
 </script>
 </body>
 </html>
