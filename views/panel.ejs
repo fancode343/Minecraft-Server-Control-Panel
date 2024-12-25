@@ -151,6 +151,29 @@
     .custom-modal-content .btn-cancel:hover {
       background-color: #c82333;
     }
+    .custom-modal12 {
+  display: none; /* Initially hidden */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5); /* Modal overlay */
+}
+.custom-modal-content {
+  background: rgb(66, 66, 66);
+  padding: 20px;
+  border-radius: 5px;
+  width: 300px;
+}
+.btn-sendMSG {
+  font-size: 20px;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  border-radius: 12px;
+  background-color:rgb(88, 255, 83)
+}
   </style>
 </head>
 <body>
@@ -181,6 +204,8 @@
     </div>
   </nav>
 
+
+
   <div class="container mt-5">
     <h1>Welcome, <%= username %>!</h1>
     <div class="btn-group mb-4">
@@ -200,11 +225,32 @@
         <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
       </div>
     </div>
-
-
     <h2>Players-Status</h2>
-    <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"></div>
+    <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"><h3 style="color: red;">Server is offline</h3></div>
+
+
+    <h2>Server-Settings</h2>  <!-- Server Setinngs-->
+
+
+    <div><button class="btn-sendMSG" id="messageSRV">Send Message</button></div> <!-- Send MSG Button-->
+    <div id="customModal12" class="custom-modal12">
+      <div class="custom-modal-content">
+
+
+        <h3 id="modalTitle">Send a Message</h3>
+        <label><input type="radio" name="commandType" value="tellraw"> Tellraw</label>
+  <label><input type="radio" name="commandType" value="title"> Title</label>
+        </select>
+        <textarea id="modalInput12" placeholder="Enter your message here..." rows="3" style="width: 100%; padding: 8px;"></textarea>
+        <div>
+          <button class="btn-submit" id="submitModal12">Submit</button>
+          <button class="btn-cancel" id="cancelModal12">Cancel</button>
+        </div>
+      </div>
+    </div>
   </div>
+ 
+  
 
   <!-- Modals -->
   <div id="customModal" class="custom-modal">
@@ -215,12 +261,6 @@
         <button class="btn-submit" id="submitModal">Submit</button>
         <button class="btn-cancel" id="cancelModal">Cancel</button>
       </div>
-    </div>
-  </div>
-
-  <div id="customModal1" class="custom-modal">
-    <div class="custom-modal-content">
-      <h3>This Player is offline</h3>
     </div>
   </div>
 
@@ -243,150 +283,233 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
- 
+
   <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const logContainer = document.getElementById("logs");
-  const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
+    const messageButton12 = document.getElementById("messageSRV");
+    const customModal12 = document.getElementById("customModal12");
+    const submitModal12 = document.getElementById("submitModal12");
+    const cancelModal12 = document.getElementById("cancelModal12");
+    const modalInput12 = document.getElementById("modalInput12");
+  
+    // Open the modal
+    messageButton12.addEventListener("click", () => {
+      customModal12.style.display = "flex";
+    });
+  
+    // Close the modal
+    cancelModal12.addEventListener("click", () => {
+      customModal12.style.display = "none";
+      modalInput12.value = "";
+    });
+  
+    // Submit the message
+    submitModal12.addEventListener("click", () => {
+      // Get selected command type
+      const commandTypeElement = document.querySelector('input[name="commandType"]:checked');
+      if (!commandTypeElement) {
+        alert("Please select a command type!");
+        return;
+      }
+      const commandType = commandTypeElement.value;
+      if (!commandType) {
+        alert("Please select a command type!");
+        return;
+      }
+  
+      // Get message input
+      const message = modalInput12.value.trim();
+      if (!message) {
+        alert("Message cannot be empty!");
+        return;
+      }
+  
+      // Construct the server command
+      let serverCommand;
+      if (commandType === "tellraw") {
+        serverCommand = `tellraw @a {"rawtext":[{"text":"${message}"}]}`;
+      } else if (commandType === "title") {
+        serverCommand = `title @a title {"text":"${message}"}`;
+      } else {
+        alert("Invalid command type selected!");
+        return;
+      }
+  
+      // Send command to the server
+      fetch("/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `command=${encodeURIComponent(serverCommand)}`,
+      })
+        .then((response) => {
+          console.log("Fetch Response Status:", response.status); // Debugging
+          return response.text();
+        })
+        .then((result) => {
+          console.log("Server Response:", result); // Debugging
+          showModal(result);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          showModal("An error occurred while processing your command.");
+        });
+  
+      // Close the modal and reset inputs
+      customModal12.style.display = "none";
+      modalInput12.value = "";
+    });
+  
+    // Function to show the server response
+    function showModal(message) {
+      alert(message); // Replace with a custom modal if needed
+    }
+  </script>
 
-  /**
-   * Display the response modal with a given message.
-   * @param {string} message - The message to display in the modal.
-   */
-  function showModal(message) {
-    document.getElementById("responseModalBody").innerText = message;
-    responseModal.show();
-  }
-
-  /**
-   * Toggle the loading state for buttons.
-   * @param {string} buttonId - The ID of the button.
-   * @param {string} spinnerId - The ID of the spinner.
-   * @param {string} checkId - The ID of the check icon.
-   * @param {boolean} isLoading - Whether the button is in a loading state.
-   */
-  function toggleLoading(buttonId, spinnerId, checkId, isLoading) {
-    const button = document.getElementById(buttonId);
-    const spinner = document.getElementById(spinnerId);
-    const check = document.getElementById(checkId);
-
-    if (isLoading) {
-      button.disabled = true;
-      spinner.style.display = "inline-block";
-      check.style.display = "none";
-    } else {
-      button.disabled = false;
-      spinner.style.display = "none";
-      check.style.display = "inline-block";
-
-      // Remove the check icon after 5 seconds
-      setTimeout(() => {
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const logContainer = document.getElementById("logs");
+    const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
+  
+    /**
+     * Display the response modal with a given message.
+     * @param {string} message - The message to display in the modal.
+     */
+    function showModal(message) {
+      document.getElementById("responseModalBody").innerText = message;
+      responseModal.show();
+    }
+  
+    /**
+     * Toggle the loading state for buttons.
+     * @param {string} buttonId - The ID of the button.
+     * @param {string} spinnerId - The ID of the spinner.
+     * @param {string} checkId - The ID of the check icon.
+     * @param {boolean} isLoading - Whether the button is in a loading state.
+     */
+    function toggleLoading(buttonId, spinnerId, checkId, isLoading) {
+      const button = document.getElementById(buttonId);
+      const spinner = document.getElementById(spinnerId);
+      const check = document.getElementById(checkId);
+  
+      if (isLoading) {
+        button.disabled = true;
+        spinner.style.display = "inline-block";
         check.style.display = "none";
-      }, 5000);
+      } else {
+        button.disabled = false;
+        spinner.style.display = "none";
+        check.style.display = "inline-block";
+  
+        // Remove the check icon after 5 seconds
+        setTimeout(() => {
+          check.style.display = "none";
+        }, 5000);
+      }
     }
-  }
-
-  /**
-   * Handle server actions with loading states.
-   * @param {string} buttonId - The button's ID.
-   * @param {string} spinnerId - The spinner's ID.
-   * @param {string} checkId - The check icon's ID.
-   * @param {string} url - The endpoint to call.
-   * @param {string} successMessage - The message to log on success.
-   */
-  function sendServerAction(buttonId, spinnerId, checkId, url, successMessage) {
-    toggleLoading(buttonId, spinnerId, checkId, true);
-
-    fetch(url, { method: "POST" })
-      .then((response) => response.text())
-      .then((result) => {
-        showModal(result);
-        console.log(successMessage);
-        toggleLoading(buttonId, spinnerId, checkId, false);
+  
+    /**
+     * Handle server actions with loading states.
+     * @param {string} buttonId - The button's ID.
+     * @param {string} spinnerId - The spinner's ID.
+     * @param {string} checkId - The check icon's ID.
+     * @param {string} url - The endpoint to call.
+     * @param {string} successMessage - The message to log on success.
+     */
+    function sendServerAction(buttonId, spinnerId, checkId, url, successMessage) {
+      toggleLoading(buttonId, spinnerId, checkId, true);
+  
+      fetch(url, { method: "POST" })
+        .then((response) => response.text())
+        .then((result) => {
+          showModal(result);
+          console.log(successMessage);
+          toggleLoading(buttonId, spinnerId, checkId, false);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          showModal("An error occurred while processing your request.");
+          toggleLoading(buttonId, spinnerId, checkId, false);
+        });
+    }
+  
+    /**
+     * Append a log entry to the log container.
+     * @param {string} logEntry - The log entry to append.
+     */
+    function appendLog(logEntry) {
+      const logLine = document.createElement("div");
+  
+      try {
+        const parsedLog = JSON.parse(logEntry);
+        logLine.textContent = Array.isArray(parsedLog)
+          ? parsedLog.join("\n")
+          : JSON.stringify(parsedLog, null, 2);
+      } catch {
+        logLine.textContent = logEntry;
+      }
+  
+      logLine.style.whiteSpace = "pre-wrap";
+      logContainer.appendChild(logLine);
+  
+      // Limit visible logs to the latest 100 entries
+      if (logContainer.children.length > 100) {
+        logContainer.removeChild(logContainer.firstChild);
+      }
+  
+      logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to bottom
+    }
+  
+    /**
+     * Send a command to the server.
+     * @param {string} command - The command to send.
+     */
+    function sendCommand(command) {
+      fetch("/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `command=${encodeURIComponent(command)}`,
       })
-      .catch((error) => {
-        console.error("Error:", error);
-        showModal("An error occurred while processing your request.");
-        toggleLoading(buttonId, spinnerId, checkId, false);
-      });
-  }
-
-  /**
-   * Append a log entry to the log container.
-   * @param {string} logEntry - The log entry to append.
-   */
-  function appendLog(logEntry) {
-    const logLine = document.createElement("div");
-
-    try {
-      const parsedLog = JSON.parse(logEntry);
-      logLine.textContent = Array.isArray(parsedLog)
-        ? parsedLog.join("\n")
-        : JSON.stringify(parsedLog, null, 2);
-    } catch {
-      logLine.textContent = logEntry;
+        .then((response) => response.text())
+        .then((result) => {
+          document.getElementById("commandInput").value = "";
+          showModal(result);
+        })
+        .catch(() => showModal("An error occurred while processing your command."));
     }
-
-    logLine.style.whiteSpace = "pre-wrap";
-    logContainer.appendChild(logLine);
-
-    // Limit visible logs to the latest 100 entries
-    if (logContainer.children.length > 100) {
-      logContainer.removeChild(logContainer.firstChild);
-    }
-
-    logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to bottom
-  }
-
-  /**
-   * Send a command to the server.
-   * @param {string} command - The command to send.
-   */
-  function sendCommand(command) {
-    fetch("/command", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `command=${encodeURIComponent(command)}`,
-    })
-      .then((response) => response.text())
-      .then((result) => {
-        document.getElementById("commandInput").value = "";
-        showModal(result);
-      })
-      .catch(() => showModal("An error occurred while processing your command."));
-  }
-
-  // WebSocket setup for live logs
-  const socket = new WebSocket(
-    `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
-  );
-
-  socket.onopen = () => console.log("WebSocket connection established");
-  socket.onmessage = (event) => appendLog(event.data);
-  socket.onerror = (error) => console.error("WebSocket error:", error);
-  socket.onclose = () => console.log("WebSocket connection closed");
-
-  // Event listeners for server action buttons
-  document.getElementById("startButton").addEventListener("click", () => {
-    sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
+  
+    // WebSocket setup for live logs
+    const socket = new WebSocket(
+      `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
+    );
+  
+    socket.onopen = () => console.log("WebSocket connection established");
+    socket.onmessage = (event) => appendLog(event.data);
+    socket.onerror = (error) => console.error("WebSocket error:", error);
+    socket.onclose = () => console.log("WebSocket connection closed");
+  
+    // Event listeners for server action buttons
+    document.getElementById("startButton").addEventListener("click", () => {
+      sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
+    });
+  
+    document.getElementById("restartButton").addEventListener("click", () => {
+      sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
+    });
+  
+    document.getElementById("stopButton").addEventListener("click", () => {
+      sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
+    });
+  
+    // Event listener for the command form
+    document.getElementById("commandForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const command = document.getElementById("commandInput").value;
+      sendCommand(command);
+      
+    });
   });
-
-  document.getElementById("restartButton").addEventListener("click", () => {
-    sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
-  });
-
-  document.getElementById("stopButton").addEventListener("click", () => {
-    sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
-  });
-
-  // Event listener for the command form
-  document.getElementById("commandForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const command = document.getElementById("commandInput").value;
-    sendCommand(command);
-  });
-});
-</script>
+  </script>
+  
+  
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -413,6 +536,9 @@ document.addEventListener("DOMContentLoaded", () => {
    } else if (action === "message") {
      modalTitle.textContent = `Message ${playerName}`;
      modalInput.placeholder = "Enter your message...";
+   } else if (action === "teleport") {
+     modalTitle.textContent = `teleport ${playerName}`;
+     modalInput.placeholder = "Enter Player or Coordinates X Y Z";
    }
 
    modalInput.value = "";
@@ -431,7 +557,10 @@ document.addEventListener("DOMContentLoaded", () => {
      handleCommand(`kick "${currentPlayer}"" ${inputValue}`);
    } else if (currentAction === "message") {
      handleCommand(`title "${currentPlayer}" title ${inputValue}`);
+   } else if (currentAction === "teleport") {
+     handleCommand(`tp "${currentPlayer}" ${inputValue}`);
    }
+   
 
    closeModal();
  }
@@ -509,6 +638,16 @@ document.addEventListener("DOMContentLoaded", () => {
        messageButton.innerText = "Message";
        messageButton.onclick = () => showModal("message", player.name);
        contextMenu.appendChild(messageButton);
+
+       const killButton = document.createElement("button");
+       killButton.innerText = "kill";
+       killButton.onclick = () => handleCommand(`kill "${player.name}"`);
+       contextMenu.appendChild(killButton);
+
+       const tpButton = document.createElement("button");
+       tpButton.innerText = "teleport";
+       tpButton.onclick = () => showModal("teleport", player.name);
+       contextMenu.appendChild(tpButton);
      } else {
        const messageButton = document.createElement("button");
        messageButton.innerText = "Offline";
