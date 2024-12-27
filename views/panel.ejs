@@ -2,13 +2,20 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Panel</title>
-  <link rel="shortcut icon" href="assets/logo.png" sizes="196x196" type="image/png">
-  
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="EPSTEINSMP PANEL">
+    <link rel="shortcut icon" href="assets/logo.png" sizes="196x196" type="image/png">
+    <meta name="description" content="EpsteinSMP ControlPanel, Control And Manage The Server">
+    <meta name="author" content="EpsteinSMP">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:image" content="/assets/content.jpg">
+    <meta name="googlebot" content="noindex">
+    <meta property="og:site_name" content="EPSTIENSMP">
+    <title>Control Panel</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/chatAssets/chat.css">
   <style>
     #logs {
       width: 100%;
@@ -170,9 +177,9 @@
 }
 .btn-sendMSG {
   font-size: 20px;
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-  border-radius: 12px;
-  background-color:rgb(88, 255, 83)
+  box-shadow: 0 5px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  border-radius: 6px;
+  background-color:rgb(6, 199, 247)
 }
   </style>
 </head>
@@ -188,6 +195,9 @@
         <li class="nav-item"><a class="nav-link" href="/bots-panel">Bots</a></li>
         <li class="nav-item"><a class="nav-link" href="/command-center">Command</a></li>
         <li class="nav-item"><a class="nav-link" href="/editserver-properties">Edit Server Properties</a></li>
+        <li class="nav-item"><a class="nav-link" href="/server-info">Server-info</a></li>
+        <li class="nav-item"><a class="nav-link" href="/activitylogs">Activity-logs</a></li>
+
       </ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown">
@@ -195,7 +205,7 @@
             <i class="fa fa-user-circle"></i> <%= username %>
           </a>
           <div class="dropdown-menu dropdown-menu-right bg-dark text-white" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item text-white" href="?p=&settings=1">Settings</a>
+            <a class="dropdown-item text-white" href="/panel?p=&settings=1">Settings</a>
             <a class="dropdown-item text-white" href="?p=&help=2">Help</a>
             <a class="dropdown-item text-white" href="/logout">Sign Out</a>
           </div>
@@ -225,13 +235,14 @@
         <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
       </div>
     </div>
-    <h2>Players-Status</h2>
+
+
+    <h3>Players-Status</h3>
     <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"><h3 style="color: red;">Server is offline</h3></div>
 
 
-    <h2>Server-Settings</h2>  <!-- Server Setinngs-->
-
-
+    <h4>__________________________</h4>
+    <h3>Send message to the server</h3>
     <div><button class="btn-sendMSG" id="messageSRV">Send Message</button></div> <!-- Send MSG Button-->
     <div id="customModal12" class="custom-modal12">
       <div class="custom-modal-content">
@@ -248,6 +259,101 @@
         </div>
       </div>
     </div>
+    <h4>__________________________</h4>
+    <h3>Gamerule</h3>
+<div id="gameruleSettings">
+  <div class="form-group">
+    <label for="keepInventory">keepInventory:</label>
+    <select style="width: 200px;" id="keepInventory" class="form-control">
+      <option style="width: 10%;" value="true">True</option>
+      <option style="width: 10%;" value="false">False</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="playersSleepingPercentage">playersSleepingPercentage:</label>
+    <input type="number" id="playersSleepingPercentage" class="form-control" style="width: 200px;" min="0" max="100" value="50">
+  </div>
+
+  <button id="submitGamerule" class="btn btn-primary">Submit</button>
+</div>
+<h4>__________________________</h4>
+<h3>Allowlist</h3>
+<div id="AllowlistP">
+  <div class="form-group">
+    <label for="Allowlist">Allowlist:</label>
+     <select style="width: 200px;" id="allowlist" class="form-control">
+    <option style="width: 10%;" value="add">Add</option>
+    <option style="width: 10%;" value="remove">Remove</option>
+</select>
+</div>
+<div class="form-group">
+  <label for="Gamertag">Gamertag:</label>
+  <input type="playerAllow" id="playerallow" class="form-control" style="width: 200px;" min="0" max="100" value="Player">
+  </div>
+  <button id="submitAllowlist" class="btn btn-primary">Submit</button>
+</div>
+
+<script>
+  document.getElementById("submitAllowlist").addEventListener("click", () => {
+  // Retrieve values from the inputs
+  const value1 = document.getElementById("allowlist").value;
+  const player = document.getElementById("playerallow").value
+
+  // Construct commands
+  const commands = [
+    `allowlist ${value1} ${player}`
+  ];
+
+  // Send commands to the server
+  commands.forEach(command => {
+    logActivity(`${command}`)
+    fetch("/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `command=${encodeURIComponent(command)}`,
+    })
+      .then(response => response.text())
+      .then(result => console.log(result))
+      .catch(error => console.error("Error sending command:", error));
+  });
+
+  alert("Allowlist submitted!");
+});
+</script>
+
+<h4>__________________________</h4>
+<h3>World Backup</h3>
+
+<div class="form-group">
+  <label for="backupOption">Choose Backup Option:</label>
+  <select id="backupOption" class="form-control" style="width: 200px;">
+    <option value="dayToDay">Select Option</option>
+    <option value="dayToDay">DaytoDay</option>
+    <option value="hours24">24hours</option>
+  </select>
+</div>
+
+<div id="fileListContainer" style="margin-top: 10px;">
+  <ul id="fileList" class="list-group"></ul>
+</div>
+
+<button id="submitBackup" class="btn btn-primary mt-3">Submit Backup</button>
+
+<!-- Confirmation Modal -->
+<div id="backupModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <h3>Confirm Backup</h3>
+    <p>Are you sure you want to backup this file? This action will stop the server.</p>
+    <div id="progressText" style="display: none; color: white; margin-top: 10px;">Progressing...</div>
+    <div>
+      <button id="confirmBackup" class="btn btn-danger">Confirm</button>
+      <button id="cancelBackup" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
   </div>
  
   
@@ -279,11 +385,333 @@
     </div>
   </div>
 
+  <!--Chat Container-->
+  <div id="chatContainer" class="chat-container">
+    <div class="chat-header">
+      <h5>Chat</h5>
+      <button id="closeChatButton" class="close-chat">✖</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <textarea id="chatInput" rows="2" placeholder="Type a message..."></textarea>
+      <button id="sendMessageButton">Send</button>
+    </div>
+  </div>
+  <button id="chatToggle" class="chat-toggle">💬</button>
+  
+<script>
+ async function logActivity(action) {
+  // Generate a UTC+8 timestamp
+  const options = { timeZone: "Asia/Shanghai", hour12: false };
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    ...options,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
+  const utc8Date = new Date();
+  const [datePart, timePart] = formatter.format(utc8Date).split(", ");
+  const [month, day, year] = datePart.split("/"); // Extract parts of the date
+  const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+
+  const payload = {
+    user: "<%= username %>", // Replace with dynamic username if needed
+    action,
+    timestamp,
+  };
+
+  console.log("Payload to be sent:", payload); // Debugging
+
+  try {
+    const response = await fetch("/activity-log", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to log activity:", errorData.error);
+    } else {
+      console.log("Activity logged:", payload);
+    }
+  } catch (error) {
+    console.error("Error logging activity:", error);
+  }
+}
+
+</script>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // DOM elements
+      const chatContainer = document.getElementById("chatContainer");
+      const chatMessages = document.getElementById("chatMessages");
+      const chatInput = document.getElementById("chatInput");
+      const sendMessageButton = document.getElementById("sendMessageButton");
+      const chatToggle = document.getElementById("chatToggle");
+      const closeChatButton = document.getElementById("closeChatButton");
+  
+      // Username (replace with dynamic username logic if available)
+      const username = "<%= username %>";
+  
+      // WebSocket connection
+      const ws = new WebSocket("ws://localhost:8080"); //note: change this to your server ip
+  
+      // Helper function to append a message to the chat
+      function appendMessage(user, message) {
+        if (!chatMessages) {
+          console.error("Chat messages container not found.");
+          return;
+        }
+        const messageElement = document.createElement("div");
+        messageElement.textContent = `${user}: ${message}`;
+        chatMessages.appendChild(messageElement);
+        scrollToBottom(); // Automatically scroll to the bottom
+      }
+  
+      // Helper function to scroll to the bottom of the chat
+      function scrollToBottom() {
+        if (chatMessages) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+  
+      // Send a message
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+          const payload = { user: username, message };
+          ws.send(JSON.stringify(payload)); // Send the message
+          chatInput.value = ""; // Clear input field
+        }
+      }
+  
+      // WebSocket event: Handle incoming messages
+      ws.onmessage = (event) => {
+        console.log("WebSocket message received:", event.data);
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch (error) {
+          console.error("Invalid JSON received from WebSocket:", event.data);
+          return;
+        }
+  
+        if (data.type === "history") {
+          chatMessages.innerHTML = ""; // Clear existing messages
+          data.data.forEach((msg) => appendMessage(msg.user, msg.message));
+          scrollToBottom(); // Scroll to the bottom after loading history
+        } else if (data.type === "message") {
+          appendMessage(data.data.user, data.data.message);
+          if (chatContainer.style.display === "none") {
+            chatToggle.classList.add("new-message"); // Highlight toggle if hidden
+          }
+        }
+      };
+  
+      // WebSocket event: Log errors
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+  
+      // WebSocket event: Log disconnection
+      ws.onclose = () => {
+        console.warn("WebSocket connection closed.");
+      };
+  
+      // Event listener: Send message on button click
+      sendMessageButton.addEventListener("click", sendMessage);
+  
+      // Event listener: Send message on Enter key press
+      chatInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault(); // Prevent newline in the textarea
+          sendMessage(); // Send the message
+        }
+      });
+  
+      // Event listener: Toggle chat container visibility
+      chatToggle.addEventListener("click", () => {
+        chatContainer.style.display = "flex";
+        chatToggle.style.display = "none"; // Hide chat toggle
+        chatToggle.classList.remove("new-message"); // Remove notification styling
+        scrollToBottom(); // Scroll to the bottom on opening
+      });
+  
+      // Event listener: Close chat container
+      closeChatButton.addEventListener("click", () => {
+        chatContainer.style.display = "none";
+        chatToggle.style.display = "block"; // Show chat toggle
+      });
+    });
+  </script>
+  
+  
+  
+  
+  
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+  <script src="/assets/SSR.js"></script> <!--SSR function-->
+
+  <script>
+    const backupOption = document.getElementById("backupOption");
+    const fileListContainer = document.getElementById("fileListContainer");
+    const fileList = document.getElementById("fileList");
+    const submitBackup = document.getElementById("submitBackup");
+    const backupModal = document.getElementById("backupModal");
+    const confirmBackup = document.getElementById("confirmBackup");
+    const cancelBackup = document.getElementById("cancelBackup");
+    const progressText = document.createElement("div");
+
+    progressText.id = "progressText";
+    progressText.style.display = "none";
+    progressText.style.color = "white";
+    progressText.style.marginTop = "10px";
+    progressText.textContent = "Progressing...";
+    backupModal.querySelector(".custom-modal-content").appendChild(progressText);
+
+    let selectedBackupType = null;
+    let selectedFileId = null;
+    let selectedFileName = null;
+
+    // Fetch and display file list based on backup option
+    backupOption.addEventListener("change", () => {
+        const type = backupOption.value;
+        selectedBackupType = type;
+
+        fetch(`/api/files?type=${type}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then((files) => {
+                // Populate the file list with file name and modified time
+                fileList.innerHTML = files
+                    .map(
+                        (file) =>
+                            `<li class="list-group-item" data-file-id="${file.id}" data-file-name="${file.name}" style="cursor: pointer;">
+                                <strong>${file.name}</strong><br>
+                                <small>Last Modified: ${file.modifiedTime}</small>
+                            </li>`
+                    )
+                    .join("");
+            })
+            .catch((error) => {
+                console.error("Error fetching files:", error);
+                alert("Failed to fetch files. Please try again.");
+            });
+    });
+
+    // Handle file selection
+    fileList.addEventListener("click", (event) => {
+        const listItem = event.target.closest("li");
+        if (listItem) {
+            // Highlight the selected file
+            [...fileList.children].forEach((item) => item.classList.remove("active"));
+            listItem.classList.add("active");
+
+            // Store the selected file's ID and name
+            selectedFileId = listItem.dataset.fileId;
+            selectedFileName = listItem.dataset.fileName;
+        }
+        
+    });
+
+    // Show confirmation modal when "Submit Backup" is clicked
+    submitBackup.addEventListener("click", () => {
+        if (!selectedFileId || !selectedFileName) {
+            alert("Please select a file to backup.");
+            return;
+        }
+        backupModal.style.display = "flex";
+    });
+
+    // Send backup request to the server
+    confirmBackup.addEventListener("click", () => {
+        // Show the progressing text
+        progressText.style.display = "block";
+
+        logActivity(`Server Backup  - ${selectedBackupType}, ${selectedFileId}, ${selectedFileName} `)
+        fetch("/api/backup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: selectedBackupType,
+                fileId: selectedFileId,
+                fileName: selectedFileName,
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Backup failed: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then((result) => {
+                alert(result);
+                backupModal.style.display = "none";
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("An error occurred during the backup process.");
+            })
+            .finally(() => {
+                // Hide the progressing text
+                progressText.style.display = "none";
+            });
+    });
+
+    // Close confirmation modal
+    cancelBackup.addEventListener("click", () => {
+        backupModal.style.display = "none";
+    });
+</script>
+
+  
+  
+  
+
+  <script>
+    document.getElementById("submitGamerule").addEventListener("click", () => {
+    // Retrieve values from the inputs
+    const keepInventory = document.getElementById("keepInventory").value;
+    const playersSleepingPercentage = document.getElementById("playersSleepingPercentage").value;
+
+    // Construct commands
+    const commands = [
+      `gamerule keepInventory ${keepInventory}`,
+      `gamerule playersSleepingPercentage ${playersSleepingPercentage}`
+    ];
+
+    // Send commands to the server
+    commands.forEach(command => {
+      logActivity(`${command}`)
+      fetch("/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `command=${encodeURIComponent(command)}`,
+      })
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.error("Error sending command:", error));
+    });
+
+    alert("Gamerule settings submitted!");
+  });
+  </script>
   <script>
     const messageButton12 = document.getElementById("messageSRV");
     const customModal12 = document.getElementById("customModal12");
@@ -335,6 +763,7 @@
       }
   
       // Send command to the server
+      logActivity(`${serverCommand}`)
       fetch("/command", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -364,150 +793,8 @@
     }
   </script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const logContainer = document.getElementById("logs");
-    const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
-  
-    /**
-     * Display the response modal with a given message.
-     * @param {string} message - The message to display in the modal.
-     */
-    function showModal(message) {
-      document.getElementById("responseModalBody").innerText = message;
-      responseModal.show();
-    }
-  
-    /**
-     * Toggle the loading state for buttons.
-     * @param {string} buttonId - The ID of the button.
-     * @param {string} spinnerId - The ID of the spinner.
-     * @param {string} checkId - The ID of the check icon.
-     * @param {boolean} isLoading - Whether the button is in a loading state.
-     */
-    function toggleLoading(buttonId, spinnerId, checkId, isLoading) {
-      const button = document.getElementById(buttonId);
-      const spinner = document.getElementById(spinnerId);
-      const check = document.getElementById(checkId);
-  
-      if (isLoading) {
-        button.disabled = true;
-        spinner.style.display = "inline-block";
-        check.style.display = "none";
-      } else {
-        button.disabled = false;
-        spinner.style.display = "none";
-        check.style.display = "inline-block";
-  
-        // Remove the check icon after 5 seconds
-        setTimeout(() => {
-          check.style.display = "none";
-        }, 5000);
-      }
-    }
-  
-    /**
-     * Handle server actions with loading states.
-     * @param {string} buttonId - The button's ID.
-     * @param {string} spinnerId - The spinner's ID.
-     * @param {string} checkId - The check icon's ID.
-     * @param {string} url - The endpoint to call.
-     * @param {string} successMessage - The message to log on success.
-     */
-    function sendServerAction(buttonId, spinnerId, checkId, url, successMessage) {
-      toggleLoading(buttonId, spinnerId, checkId, true);
-  
-      fetch(url, { method: "POST" })
-        .then((response) => response.text())
-        .then((result) => {
-          showModal(result);
-          console.log(successMessage);
-          toggleLoading(buttonId, spinnerId, checkId, false);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          showModal("An error occurred while processing your request.");
-          toggleLoading(buttonId, spinnerId, checkId, false);
-        });
-    }
-  
-    /**
-     * Append a log entry to the log container.
-     * @param {string} logEntry - The log entry to append.
-     */
-    function appendLog(logEntry) {
-      const logLine = document.createElement("div");
-  
-      try {
-        const parsedLog = JSON.parse(logEntry);
-        logLine.textContent = Array.isArray(parsedLog)
-          ? parsedLog.join("\n")
-          : JSON.stringify(parsedLog, null, 2);
-      } catch {
-        logLine.textContent = logEntry;
-      }
-  
-      logLine.style.whiteSpace = "pre-wrap";
-      logContainer.appendChild(logLine);
-  
-      // Limit visible logs to the latest 100 entries
-      if (logContainer.children.length > 100) {
-        logContainer.removeChild(logContainer.firstChild);
-      }
-  
-      logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to bottom
-    }
-  
-    /**
-     * Send a command to the server.
-     * @param {string} command - The command to send.
-     */
-    function sendCommand(command) {
-      fetch("/command", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `command=${encodeURIComponent(command)}`,
-      })
-        .then((response) => response.text())
-        .then((result) => {
-          document.getElementById("commandInput").value = "";
-          showModal(result);
-        })
-        .catch(() => showModal("An error occurred while processing your command."));
-    }
-  
-    // WebSocket setup for live logs
-    const socket = new WebSocket(
-      `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
-    );
-  
-    socket.onopen = () => console.log("WebSocket connection established");
-    socket.onmessage = (event) => appendLog(event.data);
-    socket.onerror = (error) => console.error("WebSocket error:", error);
-    socket.onclose = () => console.log("WebSocket connection closed");
-  
-    // Event listeners for server action buttons
-    document.getElementById("startButton").addEventListener("click", () => {
-      sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
-    });
-  
-    document.getElementById("restartButton").addEventListener("click", () => {
-      sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
-    });
-  
-    document.getElementById("stopButton").addEventListener("click", () => {
-      sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
-    });
-  
-    // Event listener for the command form
-    document.getElementById("commandForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const command = document.getElementById("commandInput").value;
-      sendCommand(command);
-      
-    });
-  });
-  </script>
+
+
   
   
 
@@ -555,13 +842,14 @@
 
    if (currentAction === "kick") {
      handleCommand(`kick "${currentPlayer}"" ${inputValue}`);
+     logActivity(`kicked ${currentPlayer} Reason: ${inputValue}`);
    } else if (currentAction === "message") {
      handleCommand(`title "${currentPlayer}" title ${inputValue}`);
+     logActivity(`Message ${currentPlayer}, ${inputValue}`)
    } else if (currentAction === "teleport") {
+     logActivity(`Teleport ${currentPlayer} to ${inputValue}`)
      handleCommand(`tp "${currentPlayer}" ${inputValue}`);
    }
-   
-
    closeModal();
  }
 
@@ -644,6 +932,11 @@
        killButton.onclick = () => handleCommand(`kill "${player.name}"`);
        contextMenu.appendChild(killButton);
 
+       const DeAllowButton = document.createElement("button");
+       DeAllowButton .innerText = "De-Allowlist"; 
+       DeAllowButton .onclick = () => handleCommand(`allowlist remove "${player.name}"`); 
+       contextMenu.appendChild(DeAllowButton);
+
        const tpButton = document.createElement("button");
        tpButton.innerText = "teleport";
        tpButton.onclick = () => showModal("teleport", player.name);
@@ -677,10 +970,11 @@
  }
 
  function handleCommand(command) {
+   logActivity(`${command}`)
    fetch("/command", {
      method: "POST",
      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-     body: `command=${encodeURIComponent(command)}`,
+     body: `command=${encodeURIComponent(command)}`, 
    })
      .then((response) => response.text())
      .catch((error) => console.error("Error sending command:", error));

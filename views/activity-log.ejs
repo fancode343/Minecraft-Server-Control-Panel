@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta property="og:title" content="EPSTEINSMP PANEL">
   <link rel="shortcut icon" href="assets/logo.png" sizes="196x196" type="image/png">
-  <meta name="description" content="EpsteinSMP ControlPanel, Control And Manage The Server>
+  <meta name="description" content="EpsteinSMP ControlPanel, Control And Manage The Server">
   <meta name="author" content="EpsteinSMP">
   <meta name="robots" content="noindex, nofollow">
   <meta property="og:image" content="/assets/content.jpg">
@@ -43,6 +42,7 @@
         <li class="nav-item"><a class="nav-link" href="/editserver-properties">Edit Server Properties</a></li>
         <li class="nav-item"><a class="nav-link" href="/server-info">Server-info</a></li>
         <li class="nav-item"><a class="nav-link" href="/activitylogs">Activity-logs</a></li>
+
       </ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown">
@@ -79,58 +79,52 @@
       </div>
     </div>
 
-  
-    <div class="header">
-      <div class="avatar"></div>
-      <h3>Manage Bots       <button class="btn btn-primary" data-toggle="modal" data-target="#botModal">Add Bot</button></h3>
-    </div>
-    <h4>__________________________</h4>
-  
-    <div id="botsList"></div>
-  
-    <!-- Modal for adding/editing a bot -->
-    <div class="modal fade" id="botModal" tabindex="-1" role="dialog" aria-labelledby="botModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="botModalLabel">Add Bot</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="form-group">
-              <label for="botNameInput">Bot Name</label>
-              <input type="text" class="form-control" id="botNameInput" placeholder="Enter bot name">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" onclick="sendDataToBackend()">Save Bot</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <h2>Activity Logs</h2>
+    <div id="activityLogsContainer" style="width: 100%; height: 400px; overflow-y: auto; background: #222; color: #eee; padding: 10px; border: 1px solid #555; font-family: monospace;"></div>
+    
+    <script>
+      async function loadActivityLogs() {
+        try {
+          const response = await fetch('/activitylogss');
+          if (!response.ok) {
+            throw new Error('Failed to load activity logs.');
+          }
+    
+          // Parse and sort logs by timestamp
+          const logs = await response.json();
+          const sortedLogs = logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+          const container = document.getElementById('activityLogsContainer');
+          container.innerHTML = ''; // Clear existing logs
+    
+          sortedLogs.forEach((log) => {
+            // Create a styled log entry
+            const logEntry = document.createElement('div');
+            logEntry.style.padding = '5px 10px';
+            logEntry.style.marginBottom = '5px';
+            logEntry.style.borderBottom = '1px solid #444';
+    
+            logEntry.innerHTML = `
+              <div><strong>Who:</strong> ${log.user}</div>
+              <div><strong>Action:</strong> ${log.action}</div>
+              <div><strong>Time:</strong> ${new Date(log.timestamp).toLocaleString()}</div>
+            `;
+            container.appendChild(logEntry);
+          });
+    
+          // Scroll to the bottom
+          container.scrollTop = container.scrollHeight;
+        } catch (error) {
+          console.error('Error loading activity logs:', error);
+          document.getElementById('activityLogsContainer').innerText = 'Failed to load activity logs.';
+        }
+      }
+    
+      // Load logs on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', loadActivityLogs);
+    </script>
 
-  <div id="alertModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Notification</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p id="alertMessage"></p>
-        </div>
-        <div class="modal-footer">
-          <button id="closeAlertModal" type="button" class="btn btn-primary">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
   
-
 
   <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -268,200 +262,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
  
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Modal setup
-      const alertModal = new bootstrap.Modal(document.getElementById("alertModal"));
-      const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
-      const logContainer = document.getElementById("logs");
-  
-      const showModal = (message) => {
-        document.getElementById("responseModalBody").innerText = message;
-        responseModal.show();
-      };
-  
-      const alert = (message) => {
-        const alertMessageElement = document.getElementById("alertMessage");
-        alertMessageElement.textContent = message;
-        alertModal.show();
-      };
-  
-      const toggleLoading = (buttonId, spinnerId, checkId, isLoading) => {
-        const button = document.getElementById(buttonId);
-        const spinner = document.getElementById(spinnerId);
-        const check = document.getElementById(checkId);
-  
-        if (isLoading) {
-          button.disabled = true;
-          spinner.style.display = "inline-block";
-          check.style.display = "none";
-        } else {
-          button.disabled = false;
-          spinner.style.display = "none";
-          check.style.display = "inline-block";
-  
-          setTimeout(() => {
-            check.style.display = "none";
-          }, 5000);
-        }
-      };
-  
-      const sendServerAction = (buttonId, spinnerId, checkId, url, successMessage) => {
-        toggleLoading(buttonId, spinnerId, checkId, true);
-  
-        fetch(url, { method: "POST" })
-          .then((response) => response.text())
-          .then((result) => {
-            showModal(result);
-            console.log(successMessage);
-            toggleLoading(buttonId, spinnerId, checkId, false);
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            showModal("An error occurred while processing your request.");
-            toggleLoading(buttonId, spinnerId, checkId, false);
-          });
-      };
-  
-      const fetchBots = () => {
-        fetch('/api/bots/new')
-          .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-          })
-          .then(bots => renderBots(bots))
-          .catch(error => console.error('Error fetching bots:', error));
-      };
-  
-      const renderBots = (bots) => {
-        const botsList = document.getElementById('botsList');
-        botsList.innerHTML = '';
-  
-        bots.forEach(bot => {
-          const botElement = document.createElement('div');
-          botElement.classList.add('bot');
-          botElement.setAttribute('data-name', bot.name);
-          botElement.innerHTML = `
-            <h4>${bot.name}</h4>
-            <p>Status: <span class="${bot.status === 'Online' ? 'text-success' : 'text-danger'}">${bot.status}</span></p>
-            <button class="btn btn-warning" onclick="runBot('${bot.name}')">Run</button>
-            <button class="btn btn-warning" onclick="stopBot('${bot.name}')">Stop</button>
-            <button class="btn btn-danger" onclick="deleteBot('${bot.name}')">Delete</button>
-          `;
-          botsList.appendChild(botElement);
-        });
-      };
-  
-      // Add Bot functionality
-      const sendDataToBackend = () => {
-        const name = document.getElementById('botNameInput').value.trim();
-        logActivity(`Create a bot - ${name}`)
-        if (!name) {
-          alert("Please enter a bot name.");
-          return;
-        }
-        fetch("/api/bot/new", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        })
-          .then(response => {
-            if (!response.ok) {
-              return response.json().then(error => {
-                throw new Error(error.message || "Failed to add bot");
-              });
-            }
-            return response.json();
-          })
-          .then(result => {
-            alert(result.message || "Bot added successfully");
-            fetchBots();
-            $('#botModal').modal('hide');
-          })
-          .catch(error => {
-            console.error("Error sending data:", error);
-            alert("Failed to add bot. Check the console for details.");
-          });
-      };
-  
-      // Bot actions
-  
-      window.runBot = (botName) => {
-        logActivity(`run bot - ${botName}`)
-      fetch(`/api/bots/run/${botName}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.message || 'Bot started successfully');
-          fetchBots();
-        })
-        .catch(error => {
-          console.error('Error running bot:', error);
-          alert('Failed to start the bot.');
-        });
-    };
-
-    window.stopBot = (botName) => {
-      logActivity(`Stop bot - ${botName}`)
-      fetch(`/api/bots/stop/${botName}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.message || 'Bot stopped successfully');
-          fetchBots();
-        })
-        .catch(error => {
-          console.error('Error stopping bot:', error);
-          alert('Failed to stop the bot.');
-        });
-    };
-
-    window.deleteBot = (botName) => {
-      logActivity(`Deleted bot - ${botName}`)
-      fetch(`/api/bots/${botName}`, { method: 'DELETE' })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.message || 'Bot deleted successfully');
-          fetchBots();
-        })
-        .catch(error => {
-          console.error('Error deleting bot:', error);
-          alert('Failed to delete the bot.');
-        });
-    };
-
-    // Fetch bots initially and at intervals
-    fetchBots();
-    setInterval(fetchBots, 5000);
-      // Event listeners for buttons
-      document.getElementById("startButton").addEventListener("click", () => {
-        sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
-        logActivity("Server Start")
-      });
-  
-      document.getElementById("restartButton").addEventListener("click", () => {
-        sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
-        logActivity("Server Restart")
-      });
-  
-      document.getElementById("stopButton").addEventListener("click", () => {
-        sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
-        logActivity("Server Stop")
-      });
-  
-      document.getElementById('closeAlertModal').addEventListener('click', () => alertModal.hide());
-      document.getElementById('botNameInput').addEventListener('change', sendDataToBackend);
-  
-      // Fetch bots at intervals
-      fetchBots();
-      setInterval(fetchBots, 5000);
-    });
-  </script>
-
+  <script src="/assets/SSR.js"></script> <!--SSR function-->
 
 <script>
   async function logActivity(action) {
@@ -491,7 +292,7 @@
    console.log("Payload to be sent:", payload); // Debugging
  
    try {
-     const response = await fetch("/activity-log", {
+     const response = await fetch(`/activity-log`, {     //Bugo jud ning ChatGPT Ga lisod lisod ra sa kinabuhi nag http://localhost:3000 pajud hays
        method: "POST",
        headers: {
          "Content-Type": "application/json",
@@ -511,6 +312,5 @@
  }
  
  </script>
-  
 </body>
 </html>

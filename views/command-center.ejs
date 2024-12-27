@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta property="og:title" content="EPSTEINSMP PANEL">
   <link rel="shortcut icon" href="assets/logo.png" sizes="196x196" type="image/png">
-  <meta name="description" content="EpsteinSMP ControlPanel, Control And Manage The Server>
+  <meta name="description" content="EpsteinSMP ControlPanel, Control And Manage The Server">
   <meta name="author" content="EpsteinSMP">
   <meta name="robots" content="noindex, nofollow">
   <meta property="og:image" content="/assets/content.jpg">
@@ -15,6 +14,7 @@
   <meta property="og:site_name" content="EPSTIENSMP">
   <title>Control Panel</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/chatAssets/chat.css">
   <style>
     #logs {
       width: 100%;
@@ -40,6 +40,9 @@
         <li class="nav-item"><a class="nav-link" href="/bots-panel">Bots</a></li>
         <li class="nav-item"><a class="nav-link" href="/command-center">Command</a></li>
         <li class="nav-item"><a class="nav-link" href="/editserver-properties">Edit Server Properties</a></li>
+        <li class="nav-item"><a class="nav-link" href="/server-info">Server-info</a></li>
+        <li class="nav-item"><a class="nav-link" href="/activitylogs">Activity-logs</a></li>
+
       </ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown">
@@ -47,7 +50,7 @@
             <i class="fa fa-user-circle"></i> <%= username %>
           </a>
           <div class="dropdown-menu dropdown-menu-right bg-dark text-white" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item text-white" href="?p=&settings=1">Settings</a>
+            <a class="dropdown-item text-white" href="/panel?p=&settings=1">Settings</a>
             <a class="dropdown-item text-white" href="?p=&help=2">Help</a>
             <a class="dropdown-item text-white" href="/logout">Sign Out</a>
           </div>
@@ -104,10 +107,130 @@
     </div>
   </div>
 
+  <div id="chatContainer" class="chat-container">
+    <div class="chat-header">
+      <h5>Chat</h5>
+      <button id="closeChatButton" class="close-chat">✖</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <textarea id="chatInput" rows="2" placeholder="Type a message..."></textarea>
+      <button id="sendMessageButton">Send</button>
+    </div>
+  </div>
+  <button id="chatToggle" class="chat-toggle">💬</button>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // DOM elements
+      const chatContainer = document.getElementById("chatContainer");
+      const chatMessages = document.getElementById("chatMessages");
+      const chatInput = document.getElementById("chatInput");
+      const sendMessageButton = document.getElementById("sendMessageButton");
+      const chatToggle = document.getElementById("chatToggle");
+      const closeChatButton = document.getElementById("closeChatButton");
+  
+      // Username (replace with dynamic username logic if available)
+      const username = "<%= username %>";
+  
+      // WebSocket connection
+      const ws = new WebSocket("ws://localhost:8080");
+  
+      // Helper function to append a message to the chat
+      function appendMessage(user, message) {
+        if (!chatMessages) {
+          console.error("Chat messages container not found.");
+          return;
+        }
+        const messageElement = document.createElement("div");
+        messageElement.textContent = `${user}: ${message}`;
+        chatMessages.appendChild(messageElement);
+        scrollToBottom(); // Automatically scroll to the bottom
+      }
+  
+      // Helper function to scroll to the bottom of the chat
+      function scrollToBottom() {
+        if (chatMessages) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+  
+      // Send a message
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+          const payload = { user: username, message };
+          ws.send(JSON.stringify(payload)); // Send the message
+          chatInput.value = ""; // Clear input field
+        }
+      }
+  
+      // WebSocket event: Handle incoming messages
+      ws.onmessage = (event) => {
+        console.log("WebSocket message received:", event.data);
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch (error) {
+          console.error("Invalid JSON received from WebSocket:", event.data);
+          return;
+        }
+  
+        if (data.type === "history") {
+          chatMessages.innerHTML = ""; // Clear existing messages
+          data.data.forEach((msg) => appendMessage(msg.user, msg.message));
+          scrollToBottom(); // Scroll to the bottom after loading history
+        } else if (data.type === "message") {
+          appendMessage(data.data.user, data.data.message);
+          if (chatContainer.style.display === "none") {
+            chatToggle.classList.add("new-message"); // Highlight toggle if hidden
+          }
+        }
+      };
+  
+      // WebSocket event: Log errors
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+  
+      // WebSocket event: Log disconnection
+      ws.onclose = () => {
+        console.warn("WebSocket connection closed.");
+      };
+  
+      // Event listener: Send message on button click
+      sendMessageButton.addEventListener("click", sendMessage);
+  
+      // Event listener: Send message on Enter key press
+      chatInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault(); // Prevent newline in the textarea
+          sendMessage(); // Send the message
+        }
+      });
+  
+      // Event listener: Toggle chat container visibility
+      chatToggle.addEventListener("click", () => {
+        chatContainer.style.display = "flex";
+        chatToggle.style.display = "none"; // Hide chat toggle
+        chatToggle.classList.remove("new-message"); // Remove notification styling
+        scrollToBottom(); // Scroll to the bottom on opening
+      });
+  
+      // Event listener: Close chat container
+      closeChatButton.addEventListener("click", () => {
+        chatContainer.style.display = "none";
+        chatToggle.style.display = "block"; // Show chat toggle
+      });
+    });
+  </script>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
  
   <script>
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const logContainer = document.getElementById("logs");
   const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
@@ -206,6 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
    * @param {string} command - The command to send.
    */
   function sendCommand(command) {
+    logActivity(`Command: ${command}`)
     fetch("/command", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -232,14 +356,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event listeners for server action buttons
   document.getElementById("startButton").addEventListener("click", () => {
     sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
+    logActivity("Server started");
   });
 
   document.getElementById("restartButton").addEventListener("click", () => {
     sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
+    logActivity("Server Restarted")
   });
 
   document.getElementById("stopButton").addEventListener("click", () => {
     sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
+    logActivity("Server Stop")
   });
 
   // Event listener for the command form
@@ -250,6 +377,57 @@ document.addEventListener("DOMContentLoaded", () => {
     
   });
 });
-</script>
+
+
+  </script> <!--SSR function-->
+
+<script>
+  async function logActivity(action) {
+   // Generate a UTC+8 timestamp
+   const options = { timeZone: "Asia/Shanghai", hour12: false };
+   const formatter = new Intl.DateTimeFormat("en-US", {
+     ...options,
+     year: "numeric",
+     month: "2-digit",
+     day: "2-digit",
+     hour: "2-digit",
+     minute: "2-digit",
+     second: "2-digit",
+   });
+ 
+   const utc8Date = new Date();
+   const [datePart, timePart] = formatter.format(utc8Date).split(", ");
+   const [month, day, year] = datePart.split("/"); // Extract parts of the date
+   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+ 
+   const payload = {
+     user: "<%= username %>", // Replace with dynamic username if needed
+     action,
+     timestamp,
+   };
+ 
+   console.log("Payload to be sent:", payload); // Debugging
+ 
+   try {
+     const response = await fetch(`/activity-log`, {     //Bugo jud ning ChatGPT Ga lisod lisod ra sa kinabuhi nag http://localhost:3000 pajud hays
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify(payload),
+     });
+ 
+     if (!response.ok) {
+       const errorData = await response.json();
+       console.error("Failed to log activity:", errorData.error);
+     } else {
+       console.log("Activity logged:", payload);
+     }
+   } catch (error) {
+     console.error("Error logging activity:", error);
+   }
+ }
+ 
+ </script>
 </body>
 </html>
