@@ -6,17 +6,27 @@ const { WebSocketServer } = require("ws");
 const fs = require("fs");
 const path = require("path");
 const cors = require('cors');
+const { google } = require("googleapis");
+const fsExtra = require("fs-extra");
+const { exec } = require("child_process");
 
 const PORT = 3000;
+const WS_PORT = 8080;
 
 const app = express();
 app.use(express.json()); // Parse JSON payloads
 app.use(cors());
 
+// Ensure necessary directories exist
+const downloadsPath = path.join(__dirname, "downloads");
+const serverWorldsPath = path.join(__dirname, "server", "worlds");
+
+if (!fs.existsSync(serverWorldsPath)) {
+  fs.mkdirSync(serverWorldsPath, { recursive: true });
+}
+
 const botsFilePath = path.join(__dirname, 'bots.json'); // Path to save bot names
 let bots = []; // Initialize the bots array
-
-
 
 // Load bots from the JSON file during server startup
 if (fs.existsSync(botsFilePath)) {
@@ -92,6 +102,59 @@ function updatePlayerStatus(playerName, status) {
 // Initialize players from file
 loadPlayers();
 
+// Google Drive Authentication
+const CLIENT_ID = "656806936758-3gu6etceoh3hml1tb6lq88r7hbcvp0n1.apps.googleusercontent.com";
+const CLIENT_SECRET = "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";
+const REDIRECT_URI = "https://developers.google.com/oauthplayground";
+const REFRESH_TOKEN = "1//049vBEoqfykyWCgYIARAAGAQSNwF-L9IrdOYbGyOi1fHRZNs0Cea2PrnK17KS1GO47pYrEJl-ZXPAhzpa34hvGTLhrXrcWuCFpZE";
+
+const oauth2Client = new google.auth.OAuth2(
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI
+);
+oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+
+const drive = google.drive({ version: "v3", auth: oauth2Client });
+
+// Function to list files from a Google Drive folder
+async function listFiles(folderId) {
+  const response = await drive.files.list({
+    q: `'${folderId}' in parents and trashed=false`,
+    fields: "files(id, name)",
+  });
+  return response.data.files;
+}
+
+// Function to download a file from Google Drive
+async function downloadFile(fileId, destination) {
+  const dest = fs.createWriteStream(destination);
+  return new Promise((resolve, reject) => {
+    drive.files.get(
+      { fileId, alt: "media" },
+      { responseType: "stream" },
+      (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        res.data
+          .on("end", () => {
+            console.log(`File downloaded to ${destination}`);
+            resolve();
+          })
+          .on("error", (err) => {
+            console.error("Error downloading file.");
+            reject(err);
+          })
+          .pipe(dest);
+      }
+    );
+  });
+}
+
+
+
 // Middleware setup
 app.use(
   session({
@@ -115,6 +178,73 @@ function broadcastLogs(message) {
   });
 }
 
+const wsss = new WebSocketServer({ port: WS_PORT });
+console.log(`WebSocket server running on ws://localhost:${WS_PORT}`);
+const messagesFilePath = path.join(__dirname, "messages.json");
+if (!fs.existsSync(messagesFilePath)) {
+  fs.writeFileSync(messagesFilePath, JSON.stringify([]), "utf8");
+}
+
+
+// Load messages from file
+function loadMessages() {
+  try {
+    return JSON.parse(fs.readFileSync(messagesFilePath, "utf8"));
+  } catch (error) {
+    console.error("Error reading messages.json:", error);
+    return [];
+  }
+}
+
+// Save messages to file
+function saveMessages(messages) {
+  try {
+    fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2), "utf8");
+  } catch (error) {
+    console.error("Error writing to messages.json:", error);
+  }
+}
+
+// WebSocket server logic
+const messages = loadMessages(); // Load messages globally
+
+wsss.on("connection", (ws) => {
+  console.log("New WebSocket connection established.");
+
+  // Send chat history to the newly connected client
+  ws.send(JSON.stringify({ type: "history", data: messages }));
+
+  // Handle incoming messages
+  ws.on("message", (message) => {
+    console.log("Received message:", message);
+
+    let parsedMessage;
+    try {
+      parsedMessage = JSON.parse(message); // Parse the incoming JSON
+    } catch (error) {
+      console.error("Invalid JSON received:", message);
+      ws.send(JSON.stringify({ type: "error", message: "Invalid message format" }));
+      return;
+    }
+
+    // Add the new message to the global `messages` array
+    messages.push(parsedMessage);
+    saveMessages(messages); // Persist the updated messages to file
+
+    // Broadcast the message to all connected clients
+    wsss.clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify({ type: "message", data: parsedMessage }));
+      }
+    });
+  });
+
+  ws.on("close", () => {
+    console.log("WebSocket connection closed.");
+  });
+});
+
+
 // Routes
 app.get("/", authRequired, (req, res) => res.redirect("/panel"));
 
@@ -128,22 +258,38 @@ app.use('/assets', express.static(path.join(__dirname, 'assets' )));
 
 
 app.post("/login", (req, res) => {
-  const users = {
-    GranGuorgeYT: "fancodeelastic",
-    Kormit2000: "Jaymon5654",
-    RedstoneProTech: "gab6522736",
-    jemqr: "jemargwapo73627",
-    admin: "admin@123"
-  };
   const { username, password } = req.body;
-  if (users[username] === password) {
-    req.session.loggedIn = true;
-    req.session.username = username;
-    return res.redirect("/panel");
-  }
-  res.render("login", { error: "Invalid username or password" });
+
+  // Load credentials from credentials.json
+  const credentialsPath = path.join(__dirname, "credentials.json");
+  fs.readFile(credentialsPath, "utf-8", (err, data) => {
+    if (err) {
+      console.error("Error reading credentials file:", err);
+      return res.status(500).render("login", { error: "Server error. Please try again later." });
+    }
+
+    let users;
+    try {
+      users = JSON.parse(data); // Parse JSON content
+    } catch (parseErr) {
+      console.error("Error parsing credentials file:", parseErr);
+      return res.status(500).render("login", { error: "Server error. Please try again later." });
+    }
+
+    // Check credentials
+    if (users[username] === password) {
+      req.session.loggedIn = true;
+      req.session.username = username;
+      return res.redirect("/panel");
+    }
+
+    // Invalid login
+    res.render("login", { error: "Invalid username or password" });
+  });
 });
 
+
+// Create New Bot
 app.post("/api/bot/new", authRequired, (req, res) => {
   const { name, version = "1.21.50" } = req.body; // Default version if not provided
 
@@ -243,22 +389,136 @@ if (fs.existsSync(path.join(__dirname, 'bots.json'))) {
   bots = [];
 }
 
-
-
+// Panel Route
 app.get("/panel", authRequired, (req, res) => {
-  res.render("panel", { username: req.session.username });
+  const settingsParam = req.query.settings;
+
+  if (settingsParam === "1") {
+    res.render("settings", { username: req.session.username });
+  } else {
+    res.render("panel", { username: req.session.username });
+  }
 });
 
+app.post("/save-settings", authRequired, (req, res) => {
+  const { oldPassword, password } = req.body;
+  const username = req.session.username;
+
+  // Validate input
+  if (!oldPassword || !password) {
+    return res.render("settings", {
+      username,
+      error: "Both old and new passwords are required.", // Passing error
+    });
+  }
+
+  // Path to credentials.json
+  const credentialsPath = path.join(__dirname, "credentials.json");
+
+  // Read and update credentials.json
+  fs.readFile(credentialsPath, "utf-8", (err, data) => {
+    if (err) {
+      console.error("Error reading credentials file:", err);
+      return res.render("settings", {
+        username,
+        error: "Server error. Please try again later.", // Passing error
+      });
+    }
+
+    let users;
+    try {
+      users = JSON.parse(data); // Parse existing credentials
+    } catch (parseErr) {
+      console.error("Error parsing credentials file:", parseErr);
+      return res.render("settings", {
+        username,
+        error: "Server error. Please try again later.", // Passing error
+      });
+    }
+
+    // Check if the old password is correct
+    if (users[username] !== oldPassword) {
+      return res.render("settings", {
+        username,
+        error: "Old password does not match.", // Passing error
+      });
+    }
+
+    // Update the password
+    users[username] = password; // Set the new password
+
+    // Write the updated credentials back to the file
+    fs.writeFile(credentialsPath, JSON.stringify(users, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error("Error writing credentials file:", writeErr);
+        return res.render("settings", {
+          username,
+          error: "Server error. Please try again later.", // Passing error
+        });
+      }
+
+      // Success message
+      res.render("settings", {
+        username,
+        success: "Password updated successfully.", // Passing success message
+      });
+    });
+  });
+});
+
+
+// Bots Panel Route
 app.get("/bots-panel", authRequired, (req, res) => {
   res.render("bots-panel", { username: req.session.username });
 });
 
+app.get("/server-info", authRequired, (req, res) => {
+  res.render("server-info", { username: req.session.username });
+});
+
+app.get("/activitylogs", authRequired, (req, res) => {
+  res.render("activity-log", { username: req.session.username });
+});
+
+app.get("/activitylogss", authRequired, (req, res) => {
+  const messageFilePath = path.join(__dirname, "activity_log.json");
+
+  // Read the JSON file
+  fs.readFile(messageFilePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error("Error reading activity_log.json:", err);
+      return res.status(500).json({ error: "Failed to load activity logs." });
+    }
+
+    try {
+      // Parse JSON data
+      let logs = JSON.parse(data);
+
+      // Ensure it's an array if not
+      if (!Array.isArray(logs)) {
+        logs = [logs];
+      }
+
+      // Sort logs by timestamp
+      logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      // Send the sorted logs as a response
+      res.json(logs);
+    } catch (parseError) {
+      console.error("Error parsing JSON:", parseError);
+      res.status(500).json({ error: "Invalid JSON format in activity_log.json." });
+    }
+  });
+});
+
+// Command Center Route
 app.get("/command-center", authRequired, (req, res) => {
   res.render("command-center", { username: req.session.username });
 });
 
 let runningProcesses = {}; // Track running bot processes
 
+// Run Bot
 app.post('/api/bots/run/:name', authRequired, (req, res) => {
   const { name } = req.params;
   const BotPath = path.join(__dirname, 'bots');
@@ -310,6 +570,7 @@ app.post('/api/bots/run/:name', authRequired, (req, res) => {
   }
 });
 
+// Stop Bot
 app.post('/api/bots/stop/:name', authRequired, (req, res) => {
   const { name } = req.params;
   const runbotProcess = runningProcesses[name];
@@ -330,6 +591,7 @@ app.post('/api/bots/stop/:name', authRequired, (req, res) => {
   }
 });
 
+// Delete Bot
 app.delete('/api/bots/:name', authRequired, (req, res) => {
   const { name } = req.params;
   const folderPath = path.join(__dirname, 'bots');
@@ -340,7 +602,6 @@ app.delete('/api/bots/:name', authRequired, (req, res) => {
   if (botIndex === -1) {
     return res.status(404).json({ message: 'Bot not found' });
   }
-
   // Remove the file
   if (fs.existsSync(filePath)) {
     try {
@@ -358,10 +619,7 @@ app.delete('/api/bots/:name', authRequired, (req, res) => {
   res.json({ message: 'Bot deleted successfully' });
 });
 
-
-
-
-
+// Start Server
 app.post("/start", authRequired, (req, res) => {
   if (!minecraftProcess) {
     try {
@@ -378,7 +636,7 @@ app.post("/start", authRequired, (req, res) => {
           res.send("Server Started");
         }
       });
-     
+
       minecraftProcess.stderr.on("data", (data) => {
         broadcastLogs(`[Error]: ${data.toString().trim()}`);
       });
@@ -399,6 +657,7 @@ app.post("/start", authRequired, (req, res) => {
   }
 });
 
+// Restart Server
 app.post("/restart", authRequired, (req, res) => {
   if (minecraftProcess) {
     minecraftProcess.stdin.write("stop\n");
@@ -431,6 +690,7 @@ app.post("/restart", authRequired, (req, res) => {
   }
 });
 
+// Stop Server
 app.post("/stop", authRequired, (req, res) => {
   if (minecraftProcess) {
     minecraftProcess.stdin.write("stop\n");
@@ -447,6 +707,7 @@ app.post("/stop", authRequired, (req, res) => {
   }
 });
 
+// Get Players
 app.get("/getPlayers", authRequired, (req, res) => {
   if (minecraftProcess) {
     logs.forEach((log) => {
@@ -472,17 +733,123 @@ app.get("/getPlayers", authRequired, (req, res) => {
   }
 });
 
+// Send Command
 app.post("/command", authRequired, (req, res) => {
   const command = req.body.command;
   if (minecraftProcess) {
     minecraftProcess.stdin.write(`${command}\n`);
     broadcastLogs(`[Command]: ${command}`);
+    res.send("Command sent.");
   } else {
     broadcastLogs("[Error]: Server is not running");
-    res.send("Server is not running.");
+    res.status(500).send("Server is not running.");
   }
 });
 
+// List Files from Google Drive
+app.get("/api/files", authRequired, async (req, res) => {
+  const { type } = req.query;
+  const folderId =
+    type === "dayToDay"
+      ? "1mrkAbQR1SoF_dlhPAa0xqQC0Hw3T81Se"
+      : "1qlpj1z54w0Q0HVE1TvgKB3qhdFJsSgW3";
+
+  if (!type || !folderId) {
+    return res.status(400).json({ error: "Invalid backup type." });
+  }
+
+  try {
+    // Retrieve files from Google Drive
+    const response = await drive.files.list({
+      q: `'${folderId}' in parents and trashed=false`,
+      fields: "files(id, name, modifiedTime)",
+    });
+
+    // Format the file list with date and time in UTC+8
+    const files = response.data.files.map((file) => ({
+      id: file.id,
+      name: file.name,
+      modifiedTime: new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Shanghai", // Specify UTC+8 timezone
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }).format(new Date(file.modifiedTime)), // Format date and time in UTC+8
+    }));
+
+    res.json(files);
+  } catch (error) {
+    console.error("Error listing files:", error);
+    res.status(500).json({ error: "Failed to retrieve files." });
+  }
+});
+
+
+
+// Backup Endpoint
+app.post("/api/backup", authRequired, async (req, res) => {
+  const { type, fileId, fileName } = req.body;
+  if (!type || !fileId || !fileName) {
+    return res.status(400).send("Invalid backup request.");
+  }
+
+  try {
+    // Stop the server
+    if (minecraftProcess) {
+      minecraftProcess.stdin.write("stop\n");
+      broadcastLogs("[Command]: stop");
+  
+      minecraftProcess.on("close", (code) => {
+        broadcastLogs(`[Server]: Minecraft server stopped with code ${code}`);
+        minecraftProcess = null;
+      });
+    } else {
+      broadcastLogs("[Error]: server backuped");
+    }
+    console.log("Server stopped.");
+
+    // Download the selected file
+    const backupPath = path.join(downloadsPath, fileName);
+    console.log(`Downloading file ${fileName} from Google Drive...`);
+    await downloadFile(fileId, backupPath);
+    console.log(`Downloaded file to ${backupPath}`);
+
+    // Remove the existing worlds folder
+    if (fs.existsSync(serverWorldsPath)) {
+      console.log("Removing existing worlds folder...");
+      fsExtra.removeSync(serverWorldsPath);
+      console.log("Removed existing worlds folder.");
+    }
+
+    // Extract the new backup
+    console.log(`Extracting ${fileName} using unzip...`);
+    const extractDir = path.join(__dirname, "server/worlds");
+    const unzipCommand = `unzip -o ${backupPath} -d ${extractDir}`;
+
+    await new Promise((resolve, reject) => {
+      exec(unzipCommand, (err, stdout, stderr) => {
+        if (err) {
+          console.error("Error extracting ZIP file:", stderr);
+          reject(new Error("Failed to extract ZIP file using unzip command."));
+        } else {
+          console.log("Extraction output:", stdout);
+          resolve();
+        }
+      });
+    });
+
+    console.log(`Extracted ${fileName} to ${extractDir}.`);
+    res.send("Backup completed and server stopped.");
+  } catch (error) {
+    console.error("Backup process failed:", error);
+    res.status(500).send("An error's occurred during the backup process.");
+  }
+});
+
+// Edit Server Properties
 app.get("/editserver-properties", authRequired, (req, res) => {
   try {
     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
@@ -498,7 +865,7 @@ app.get("/editserver-properties", authRequired, (req, res) => {
   }
 });
 
-
+// Update Server Properties
 app.post("/editserver-properties", authRequired, (req, res) => {
   try {
     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
@@ -516,11 +883,51 @@ app.post("/editserver-properties", authRequired, (req, res) => {
   }
 });
 
+const activityLogPath = path.join(__dirname, "activity_log.json");
+if (!fs.existsSync(activityLogPath)) {
+  fs.writeFileSync(activityLogPath, JSON.stringify([]), "utf8");
+}
+
+app.post("/activity-log", authRequired, async (req, res) => {
+  const { user, action, timestamp } = req.body;
+
+  console.log("Request body received:", req.body);
+
+  if (!user || !action || !timestamp) {
+    console.error("Invalid activity data:", req.body);
+    return res.status(400).json({ error: "Invalid activity data" });
+  }
+
+  // Validate the timestamp
+  const utc8Date = new Date(timestamp);
+  if (isNaN(utc8Date.getTime())) {
+    console.error("Invalid timestamp format:", timestamp);
+    return res.status(400).json({ error: "Invalid timestamp format" });
+  }
+
+  // Append log with validated timestamp
+  try {
+    const logs = JSON.parse(fs.readFileSync(activityLogPath, "utf8"));
+    logs.push({ user, action, timestamp });
+    fs.writeFileSync(activityLogPath, JSON.stringify(logs, null, 2), "utf8");
+
+    console.log("Activity logged successfully");
+    res.status(200).json({ message: "Activity logged successfully" });
+  } catch (error) {
+    console.error("Error logging activity:", error);
+    res.status(500).json({ error: "Failed to log activity" });
+  }
+});
+
+
+
+
+// Logout Route
 app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/login"));
 });
 
-// WebSocket handling
+// WebSocket Handling
 const server = app.listen(PORT, () => {
   console.log(`App running at http://localhost:${PORT}`);
 });
