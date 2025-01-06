@@ -236,81 +236,56 @@
       </div>
     </div>
 
-
-    <h3>Players-Status</h3>
-    <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"><h3 style="color: red;">Server is offline</h3></div>
-
-
-    <h4>__________________________</h4>
-    <h3>Send message to the server</h3>
-    <div><button class="btn-sendMSG" id="messageSRV">Send Message</button></div> <!-- Send MSG Button-->
-    <div id="customModal12" class="custom-modal12">
-      <div class="custom-modal-content">
-
-
-        <h3 id="modalTitle">Send a Message</h3>
-        <label><input type="radio" name="commandType" value="tellraw"> Tellraw</label>
-  <label><input type="radio" name="commandType" value="title"> Title</label>
-        </select>
-        <textarea id="modalInput12" placeholder="Enter your message here..." rows="3" style="width: 100%; padding: 8px;"></textarea>
-        <div>
-          <button class="btn-submit" id="submitModal12">Submit</button>
-          <button class="btn-cancel" id="cancelModal12">Cancel</button>
-        </div>
-      </div>
-    </div>
-    <h4>__________________________</h4>
-    <h3>Gamerule</h3>
-<div id="gameruleSettings">
+<h3>Allowlist</h3>
+<div id="AllowlistP">
   <div class="form-group">
-    <label for="keepInventory">keepInventory:</label>
-    <select style="width: 200px;" id="keepInventory" class="form-control">
-      <option style="width: 10%;" value="true">True</option>
-      <option style="width: 10%;" value="false">False</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label for="playersSleepingPercentage">playersSleepingPercentage:</label>
-    <input type="number" id="playersSleepingPercentage" class="form-control" style="width: 200px;" min="0" max="100" value="50">
-  </div>
-
-  <button id="submitGamerule" class="btn btn-primary">Submit</button>
+    <label for="Allowlist">Allowlist:</label>
+     <select style="width: 200px;" id="allowlist" class="form-control">
+    <option style="width: 10%;" value="add">Add</option>
+    <option style="width: 10%;" value="remove">Remove</option>
+</select>
 </div>
+<div class="form-group">
+  <label for="Gamertag">Gamertag:</label>
+  <input type="playerAllow" id="playerallow" class="form-control" style="width: 200px;" min="0" max="100" value="Player">
+  </div>
+  <button id="submitAllowlist" class="btn btn-primary">Submit</button>
+</div>
+
+<div id="playerContainer">
+  <!-- Player cards will be dynamically added here -->
+</div>
+
+<script>
+ document.getElementById("submitAllowlist").addEventListener("click", () => {
+  // Retrieve values from the inputs
+  const value1 = document.getElementById("allowlist").value;
+  const player = document.getElementById("playerallow").value;
+
+  // Construct commands
+  const commands = [`allowlist ${value1} ${player}`];
+
+  // Send commands to the server
+  commands.forEach((command) => {
+    logActivity(`${command}`);
+    fetch("/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `command=${encodeURIComponent(command)}`,
+    })
+      .then((response) => response.text())
+      .then((result) => {
+        console.log(result);
+        alert("Allowlist submitted!");
+        window.location.reload(); // Refresh the page
+      })
+      .catch((error) => console.error("Error sending command:", error));
+  });
+});
+</script>
 
 <h4>__________________________</h4>
-<h3>World Backup</h3>
 
-<div class="form-group">
-  <label for="backupOption">Choose Backup Option:</label>
-  <select id="backupOption" class="form-control" style="width: 200px;">
-    <option value="dayToDay">Select Option</option>
-    <option value="dayToDay">DaytoDay</option>
-    <option value="hours24">24hours</option>
-  </select>
-</div>
-
-<div id="fileListContainer" style="margin-top: 10px;">
-  <ul id="fileList" class="list-group"></ul>
-</div>
-
-<button id="submitBackup" class="btn btn-primary mt-3">Submit Backup</button>
-
-<!-- Confirmation Modal -->
-<div id="backupModal" class="custom-modal">
-  <div class="custom-modal-content">
-    <h3>Confirm Backup</h3>
-    <p>Are you sure you want to backup this file? This action will stop the server.</p>
-    <div id="progressText" style="display: none; color: white; margin-top: 10px;">Progressing...</div>
-    <div>
-      <button id="confirmBackup" class="btn btn-danger">Confirm</button>
-      <button id="cancelBackup" class="btn btn-secondary">Cancel</button>
-    </div>
-  </div>
-</div>
-
-
-  </div>
  
   
 
@@ -509,6 +484,58 @@
       });
     });
   </script>
+
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const playerContainer = document.getElementById("playerContainer");
+
+  // Fetch the allowlist from the server
+  async function fetchAllowlist() {
+    try {
+      const response = await fetch("/getAllowlist");
+      if (response.ok) {
+        const allowlist = await response.json();
+        updatePlayerList(allowlist);
+      } else {
+        console.error("Failed to fetch allowlist:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching allowlist:", error);
+    }
+  }
+
+  // Update the player list based on allowlist
+  function updatePlayerList(allowlist) {
+    playerContainer.innerHTML = ""; // Clear the container
+    allowlist.forEach((player) => {
+      const playerWrapper = document.createElement("div");
+      playerWrapper.className = "player";
+
+      const avatar = document.createElement("div");
+      avatar.className = "player-avatar";
+      avatar.style.backgroundImage = "url('https://i.pinimg.com/736x/3d/4a/5b/3d4a5b43754727abdcdf23e224545e7b.jpg')";
+
+      const statusIndicator = document.createElement("div");
+      statusIndicator.className = "status-indicator";
+      statusIndicator.style.backgroundColor = "green"; // All players on allowlist are presumed "connected"
+
+      const playerName = document.createElement("div");
+      playerName.className = "player-name";
+      playerName.textContent = player.name; // Assuming the JSON has a `name` field
+
+      playerWrapper.appendChild(avatar);
+      avatar.appendChild(statusIndicator);
+      playerWrapper.appendChild(playerName);
+      playerContainer.appendChild(playerWrapper);
+    });
+  }
+
+  // Fetch allowlist on page load
+  fetchAllowlist();
+});
+
+
+  </script>
   
   
   
@@ -520,234 +547,12 @@
 
   <script src="/assets/SSR.js"></script> <!--SSR function-->
 
-  <script>
-    const backupOption = document.getElementById("backupOption");
-    const fileListContainer = document.getElementById("fileListContainer");
-    const fileList = document.getElementById("fileList");
-    const submitBackup = document.getElementById("submitBackup");
-    const backupModal = document.getElementById("backupModal");
-    const confirmBackup = document.getElementById("confirmBackup");
-    const cancelBackup = document.getElementById("cancelBackup");
-    const progressText = document.createElement("div");
-
-    progressText.id = "progressText";
-    progressText.style.display = "none";
-    progressText.style.color = "white";
-    progressText.style.marginTop = "10px";
-    progressText.textContent = "Progressing...";
-    backupModal.querySelector(".custom-modal-content").appendChild(progressText);
-
-    let selectedBackupType = null;
-    let selectedFileId = null;
-    let selectedFileName = null;
-
-    // Fetch and display file list based on backup option
-    backupOption.addEventListener("change", () => {
-        const type = backupOption.value;
-        selectedBackupType = type;
-
-        fetch(`/api/files?type=${type}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then((files) => {
-                // Populate the file list with file name and modified time
-                fileList.innerHTML = files
-                    .map(
-                        (file) =>
-                            `<li class="list-group-item" data-file-id="${file.id}" data-file-name="${file.name}" style="cursor: pointer;">
-                                <strong>${file.name}</strong><br>
-                                <small>Last Modified: ${file.modifiedTime}</small>
-                            </li>`
-                    )
-                    .join("");
-            })
-            .catch((error) => {
-                console.error("Error fetching files:", error);
-                alert("Failed to fetch files. Please try again.");
-            });
-    });
-
-    // Handle file selection
-    fileList.addEventListener("click", (event) => {
-        const listItem = event.target.closest("li");
-        if (listItem) {
-            // Highlight the selected file
-            [...fileList.children].forEach((item) => item.classList.remove("active"));
-            listItem.classList.add("active");
-
-            // Store the selected file's ID and name
-            selectedFileId = listItem.dataset.fileId;
-            selectedFileName = listItem.dataset.fileName;
-        }
-        
-    });
-
-    // Show confirmation modal when "Submit Backup" is clicked
-    submitBackup.addEventListener("click", () => {
-        if (!selectedFileId || !selectedFileName) {
-            alert("Please select a file to backup.");
-            return;
-        }
-        backupModal.style.display = "flex";
-    });
-
-    // Send backup request to the server
-    confirmBackup.addEventListener("click", () => {
-        // Show the progressing text
-        progressText.style.display = "block";
-
-        logActivity(`Server Backup  - ${selectedBackupType}, ${selectedFileId}, ${selectedFileName} `)
-        fetch("/api/backup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                type: selectedBackupType,
-                fileId: selectedFileId,
-                fileName: selectedFileName,
-            }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Backup failed: ${response.statusText}`);
-                }
-                return response.text();
-            })
-            .then((result) => {
-                alert(result);
-                backupModal.style.display = "none";
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                alert("An error occurred during the backup process.");
-            })
-            .finally(() => {
-                // Hide the progressing text
-                progressText.style.display = "none";
-            });
-    });
-
-    // Close confirmation modal
-    cancelBackup.addEventListener("click", () => {
-        backupModal.style.display = "none";
-    });
-</script>
+ 
 
   
   
   
 
-  <script>
-    document.getElementById("submitGamerule").addEventListener("click", () => {
-    // Retrieve values from the inputs
-    const keepInventory = document.getElementById("keepInventory").value;
-    const playersSleepingPercentage = document.getElementById("playersSleepingPercentage").value;
-
-    // Construct commands
-    const commands = [
-      `gamerule keepInventory ${keepInventory}`,
-      `gamerule playersSleepingPercentage ${playersSleepingPercentage}`
-    ];
-
-    // Send commands to the server
-    commands.forEach(command => {
-      logActivity(`${command}`)
-      fetch("/command", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `command=${encodeURIComponent(command)}`,
-      })
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.error("Error sending command:", error));
-    });
-
-    alert("Gamerule settings submitted!");
-  });
-  </script>
-  <script>
-    const messageButton12 = document.getElementById("messageSRV");
-    const customModal12 = document.getElementById("customModal12");
-    const submitModal12 = document.getElementById("submitModal12");
-    const cancelModal12 = document.getElementById("cancelModal12");
-    const modalInput12 = document.getElementById("modalInput12");
-  
-    // Open the modal
-    messageButton12.addEventListener("click", () => {
-      customModal12.style.display = "flex";
-    });
-  
-    // Close the modal
-    cancelModal12.addEventListener("click", () => {
-      customModal12.style.display = "none";
-      modalInput12.value = "";
-    });
-  
-    // Submit the message
-    submitModal12.addEventListener("click", () => {
-      // Get selected command type
-      const commandTypeElement = document.querySelector('input[name="commandType"]:checked');
-      if (!commandTypeElement) {
-        alert("Please select a command type!");
-        return;
-      }
-      const commandType = commandTypeElement.value;
-      if (!commandType) {
-        alert("Please select a command type!");
-        return;
-      }
-  
-      // Get message input
-      const message = modalInput12.value.trim();
-      if (!message) {
-        alert("Message cannot be empty!");
-        return;
-      }
-  
-      // Construct the server command
-      let serverCommand;
-      if (commandType === "tellraw") {
-        serverCommand = `tellraw @a {"rawtext":[{"text":"${message}"}]}`;
-      } else if (commandType === "title") {
-        serverCommand = `title @a title {"text":"${message}"}`;
-      } else {
-        alert("Invalid command type selected!");
-        return;
-      }
-  
-      // Send command to the server
-      logActivity(`${serverCommand}`)
-      fetch("/command", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `command=${encodeURIComponent(serverCommand)}`,
-      })
-        .then((response) => {
-          console.log("Fetch Response Status:", response.status); // Debugging
-          return response.text();
-        })
-        .then((result) => {
-          console.log("Server Response:", result); // Debugging
-          showModal(result);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          showModal("An error occurred while processing your command.");
-        });
-  
-      // Close the modal and reset inputs
-      customModal12.style.display = "none";
-      modalInput12.value = "";
-    });
-  
-    // Function to show the server response
-    function showModal(message) {
-      alert(message); // Replace with a custom modal if needed
-    }
-  </script>
 
 
 
@@ -827,20 +632,7 @@
    }
  });
 
- // Fetch the player list from the server
- async function fetchPlayerList() {
-   try {
-     const response = await fetch("/getPlayers");
-     if (response.ok) {
-       const playerList = await response.json();
-       updatePlayerList(playerList);
-     } else {
-       console.error("Failed to fetch player list:", response.statusText);
-     }
-   } catch (error) {
-     console.error("Error fetching player list:", error);
-   }
- }
+ // Fetch the player list from the serv
 
  // Update the player list and re-render the UI
  function updatePlayerList(playerList) {

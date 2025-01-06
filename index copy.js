@@ -10,7 +10,7 @@ const { google } = require("googleapis");
 const fsExtra = require("fs-extra");
 const { exec } = require("child_process");
 
-const PORT = 3000;
+const PORT = 80;
 const WS_PORT = 8080;
 
 const app = express();
@@ -867,25 +867,6 @@ app.get("/editserver-properties", authRequired, (req, res) => {
   } catch (error) {
     res.status(500).send("Error reading server.properties file");
   }
-});
-
-const allowlistPath = path.join(__dirname, "server/allowlist.json");
-
-// Endpoint to fetch the allowlist
-app.get("/getAllowlist", (req, res) => {
-  fs.readFile(allowlistPath, "utf-8", (err, data) => {
-    if (err) {
-      console.error("Error reading allowlist.json:", err);
-      return res.status(500).send("Internal Server Error");
-    }
-    try {
-      const allowlist = JSON.parse(data);
-      res.json(allowlist); // Send allowlist as JSON
-    } catch (parseError) {
-      console.error("Error parsing allowlist.json:", parseError);
-      res.status(500).send("Internal Server Error");
-    }
-  });
 });
 
 // Update Server Properties
