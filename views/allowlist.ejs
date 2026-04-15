@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <%- include("/home/lmnet/server/assets/head") %> 
+<body>
+ <%- include("/home/lmnet/server/assets/nav") %> 
+
+
+
+  <div class="container mt-5">
+    <h1>Welcome, <%= username %>!</h1>
+    <div class="btn-group mb-4">
+      <div class="d-flex align-items-center">
+        <button id="startButton" class="btn btn-success">Start Server</button>
+        <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
+        <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="restartButton" class="btn btn-warning">Restart Server</button>
+        <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
+        <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="stopButton" class="btn btn-danger">Stop Server</button>
+        <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
+        <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+    </div>
+
+<h3>Allowlist</h3>
+<div id="AllowlistP">
+  <div class="form-group">
+    <label for="Allowlist">Allowlist:</label>
+     <select style="width: 200px;" id="allowlist" class="form-control">
+    <option style="width: 10%;" value="add">Add</option>
+    <option style="width: 10%;" value="remove">Remove</option>
+</select>
+</div>
+<div class="form-group">
+  <label for="Gamertag">Gamertag:</label>
+  <input type="playerAllow" id="playerallow" class="form-control" style="width: 200px;" min="0" max="100" value="Player">
+  </div>
+  <button id="submitAllowlist" class="btn btn-primary">Submit</button>
+</div>
+
+<div id="playerContainer">
+  <!-- Player cards will be dynamically added here -->
+</div>
+
+<script>
+ document.getElementById("submitAllowlist").addEventListener("click", () => {
+  // Retrieve values from the inputs
+  const value1 = document.getElementById("allowlist").value;
+  const player = document.getElementById("playerallow").value;
+
+  // Construct commands
+  const commands = [`allowlist ${value1} ${player}`];
+
+  // Send commands to the server
+  commands.forEach((command) => {
+    logActivity(`${command}`);
+    fetch("/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `command=${encodeURIComponent(command)}`,
+    })
+      .then((response) => response.text())
+      .then((result) => {
+        console.log(result);
+        alert("Allowlist submitted!");
+        window.location.reload(); // Refresh the page
+      })
+      .catch((error) => console.error("Error sending command:", error));
+  });
+});
+</script>
+
+<h4>__________________________</h4>
+
+ 
+  
+
+  <!-- Modals -->
+  <div id="customModal" class="custom-modal">
+    <div class="custom-modal-content">
+      <h3 id="modalTitle">Action Title</h3>
+      <input type="text" id="modalInput" placeholder="Enter your input here..." />
+      <div>
+        <button class="btn-submit" id="submitModal">Submit</button>
+        <button class="btn-cancel" id="cancelModal">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="responseModalLabel">Server Response</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body" id="responseModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Chat Container-->
+  <div id="chatContainer" class="chat-container">
+    <div class="chat-header">
+      <h5>Chat</h5>
+      <button id="closeChatButton" class="close-chat">✖</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <textarea id="chatInput" rows="2" placeholder="Type a message..."></textarea>
+      <button id="sendMessageButton">Send</button>
+    </div>
+  </div>
+  <button id="chatToggle" class="chat-toggle">💬</button>
+  
+<script>
+ async function logActivity(action) {
+  // Generate a UTC+8 timestamp
+  const options = { timeZone: "Asia/Shanghai", hour12: false };
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    ...options,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  const utc8Date = new Date();
+  const [datePart, timePart] = formatter.format(utc8Date).split(", ");
+  const [month, day, year] = datePart.split("/"); // Extract parts of the date
+  const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+
+  const payload = {
+    user: "<%= username %>", // Replace with dynamic username if needed
+    action,
+    timestamp,
+  };
+
+  console.log("Payload to be sent:", payload); // Debugging
+
+  try {
+    const response = await fetch("/activity-log", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to log activity:", errorData.error);
+    } else {
+      console.log("Activity logged:", payload);
+    }
+  } catch (error) {
+    console.error("Error logging activity:", error);
+  }
+}
+
+</script>
+
+
+  <%- include("/home/lmnet/server/assets/chatAssets/chat1.js") %>
+
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const playerContainer = document.getElementById("playerContainer");
+
+  // Fetch the allowlist from the server
+  async function fetchAllowlist() {
+    try {
+      const response = await fetch("/getAllowlist");
+      if (response.ok) {
+        const allowlist = await response.json();
+        updatePlayerList(allowlist);
+      } else {
+        console.error("Failed to fetch allowlist:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching allowlist:", error);
+    }
+  }
+
+  // Update the player list based on allowlist
+  function updatePlayerList(allowlist) {
+    playerContainer.innerHTML = ""; // Clear the container
+    allowlist.forEach((player) => {
+      const playerWrapper = document.createElement("div");
+      playerWrapper.className = "player";
+
+      const avatar = document.createElement("div");
+      avatar.className = "player-avatar";
+      avatar.style.backgroundImage = "url('https://i.pinimg.com/736x/3d/4a/5b/3d4a5b43754727abdcdf23e224545e7b.jpg')";
+
+      const statusIndicator = document.createElement("div");
+      statusIndicator.className = "status-indicator";
+      statusIndicator.style.backgroundColor = "green"; // All players on allowlist are presumed "connected"
+
+      const playerName = document.createElement("div");
+      playerName.className = "player-name";
+      playerName.textContent = player.name; // Assuming the JSON has a `name` field
+
+      playerWrapper.appendChild(avatar);
+      avatar.appendChild(statusIndicator);
+      playerWrapper.appendChild(playerName);
+      playerContainer.appendChild(playerWrapper);
+    });
+  }
+
+  // Fetch allowlist on page load
+  fetchAllowlist();
+});
+
+
+  </script>
+  
+  
+  
+  
+  
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script src="/assets/SSR.js"></script> <!--SSR function-->
+
+ 
+
+  
+  
+  
+
+
+
+
+  
+  
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+ const playerContainer = document.getElementById("playerContainer");
+
+ // Modal variables
+ const modal = document.getElementById("customModal");
+ const modalTitle = document.getElementById("modalTitle");
+ const modalInput = document.getElementById("modalInput");
+ const submitButton = document.getElementById("submitModal");
+ const cancelButton = document.getElementById("cancelModal");
+
+ let currentAction = null;
+ let currentPlayer = null;
+
+ // Show the custom modal
+ function showModal(action, playerName) {
+   currentAction = action;
+   currentPlayer = playerName;
+
+   if (action === "kick") {
+     modalTitle.textContent = `Kick ${playerName}`;
+     modalInput.placeholder = "Enter the reason for kicking...";
+   } else if (action === "message") {
+     modalTitle.textContent = `Message ${playerName}`;
+     modalInput.placeholder = "Enter your message...";
+   } else if (action === "teleport") {
+     modalTitle.textContent = `teleport ${playerName}`;
+     modalInput.placeholder = "Enter Player or Coordinates X Y Z";
+   }
+
+   modalInput.value = "";
+   modal.style.display = "flex";
+ }
+
+ // Handle modal submit
+ function handleModalSubmit() {
+   const inputValue = modalInput.value.trim();
+   if (!inputValue) {
+     alert("Input cannot be empty.");
+     return;
+   }
+
+   if (currentAction === "kick") {
+     handleCommand(`kick "${currentPlayer}"" ${inputValue}`);
+     logActivity(`kicked ${currentPlayer} Reason: ${inputValue}`);
+   } else if (currentAction === "message") {
+     handleCommand(`title "${currentPlayer}" title ${inputValue}`);
+     logActivity(`Message ${currentPlayer}, ${inputValue}`)
+   } else if (currentAction === "teleport") {
+     logActivity(`Teleport ${currentPlayer} to ${inputValue}`)
+     handleCommand(`tp "${currentPlayer}" ${inputValue}`);
+   }
+   closeModal();
+ }
+
+ // Close the modal
+ function closeModal() {
+   modal.style.display = "none";
+   currentAction = null;
+   currentPlayer = null;
+ }
+
+ // Attach event listeners to modal buttons
+ submitButton.addEventListener("click", handleModalSubmit);
+ cancelButton.addEventListener("click", closeModal);
+
+ // Close the modal on outside click
+ window.addEventListener("click", (event) => {
+   if (event.target === modal) {
+     closeModal();
+   }
+ });
+
+ // Fetch the player list from the serv
+
+ // Update the player list and re-render the UI
+ function updatePlayerList(playerList) {
+   playerContainer.innerHTML = ""; // Clear the container
+   playerList.forEach((player) => {
+     const playerWrapper = document.createElement("div");
+     playerWrapper.className = "player";
+
+     const avatar = document.createElement("div");
+     avatar.className = "player-avatar";
+     avatar.style.backgroundImage =
+       "url('https://i.pinimg.com/736x/3d/4a/5b/3d4a5b43754727abdcdf23e224545e7b.jpg')";
+
+     const statusIndicator = document.createElement("div");
+     statusIndicator.className = "status-indicator";
+     statusIndicator.style.backgroundColor =
+       player.status === "connected" ? "green" : "red";
+
+     const contextMenu = document.createElement("div");
+     contextMenu.className = "context-menu";
+
+     if (player.status === "connected") {
+       const kickButton = document.createElement("button");
+       kickButton.innerText = "Kick";
+       kickButton.onclick = () => showModal("kick", player.name);
+       contextMenu.appendChild(kickButton);
+
+       const opButton = document.createElement("button");
+       opButton.innerText = "Op";
+       opButton.onclick = () => handleCommand(`op "${player.name}"`);
+       contextMenu.appendChild(opButton);
+
+       const deopButton = document.createElement("button");
+       deopButton.innerText = "Deop";
+       deopButton.onclick = () => handleCommand(`deop "${player.name}"`);
+       contextMenu.appendChild(deopButton);
+
+       const messageButton = document.createElement("button");
+       messageButton.innerText = "Message";
+       messageButton.onclick = () => showModal("message", player.name);
+       contextMenu.appendChild(messageButton);
+
+       const killButton = document.createElement("button");
+       killButton.innerText = "kill";
+       killButton.onclick = () => handleCommand(`kill "${player.name}"`);
+       contextMenu.appendChild(killButton);
+
+       const DeAllowButton = document.createElement("button");
+       DeAllowButton .innerText = "De-Allowlist"; 
+       DeAllowButton .onclick = () => handleCommand(`allowlist remove "${player.name}"`); 
+       contextMenu.appendChild(DeAllowButton);
+
+       const tpButton = document.createElement("button");
+       tpButton.innerText = "teleport";
+       tpButton.onclick = () => showModal("teleport", player.name);
+       contextMenu.appendChild(tpButton);
+     } else {
+       const messageButton = document.createElement("button");
+       messageButton.innerText = "Offline";
+       contextMenu.appendChild(messageButton);
+     }
+
+     avatar.appendChild(contextMenu);
+     avatar.appendChild(statusIndicator);
+
+     avatar.addEventListener("click", (e) => {
+       e.stopPropagation();
+       document
+         .querySelectorAll(".context-menu")
+         .forEach((menu) => (menu.style.display = "none"));
+       contextMenu.style.display =
+         contextMenu.style.display === "block" ? "none" : "block";
+     });
+
+     const playerName = document.createElement("div");
+     playerName.className = "player-name";
+     playerName.innerText = player.name;
+
+     playerWrapper.appendChild(avatar);
+     playerWrapper.appendChild(playerName);
+     playerContainer.appendChild(playerWrapper);
+   });
+ }
+
+ function handleCommand(command) {
+   logActivity(`${command}`)
+   fetch("/command", {
+     method: "POST",
+     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+     body: `command=${encodeURIComponent(command)}`, 
+   })
+     .then((response) => response.text())
+     .catch((error) => console.error("Error sending command:", error));
+ }
+
+ fetchPlayerList();
+ setInterval(fetchPlayerList, 5000);
+
+ document.addEventListener("click", () => {
+   document
+     .querySelectorAll(".context-menu")
+     .forEach((menu) => (menu.style.display = "none"));
+ });
+
+});
+
+ </script>
+</body>
+</html>

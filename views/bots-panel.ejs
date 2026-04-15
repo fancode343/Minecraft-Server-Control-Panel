@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+ <%- include("/home/lmnet/server/assets/head") %> 
+<body>
+<%- include("/home/lmnet/server/assets/nav") %> 
+
+  <div class="container mt-5">
+    <h1>Welcome, <%= username %>!</h1>
+    <div class="btn-group mb-4">
+      <div class="d-flex align-items-center">
+        <button id="startButton" class="btn btn-success">Start Server</button>
+        <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
+        <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="restartButton" class="btn btn-warning">Restart Server</button>
+        <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
+        <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="stopButton" class="btn btn-danger">Stop Server</button>
+        <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
+        <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+    </div>
+
+  
+    <div class="header">
+      <div class="avatar"></div>
+      <h3>Manage Bots       <button class="btn btn-primary" data-toggle="modal" data-target="#botModal">Add Bot</button></h3>
+    </div>
+    <h4>__________________________</h4>
+  
+    <div id="botsList"></div>
+  
+    <!-- Modal for adding/editing a bot -->
+    <div class="modal fade" id="botModal" tabindex="-1" role="dialog" aria-labelledby="botModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="botModalLabel">Add Bot</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="botNameInput">Bot Name</label>
+              <input type="text" class="form-control" id="botNameInput" placeholder="Enter bot name">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="sendDataToBackend()">Save Bot</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Notification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="alertMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button id="closeAlertModal" type="button" class="btn btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+
+  <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="responseModalLabel">Server Response</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body" id="responseModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chatContainer" class="chat-container">
+    <div class="chat-header">
+      <h5>Chat</h5>
+      <button id="closeChatButton" class="close-chat">✖</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <textarea id="chatInput" rows="2" placeholder="Type a message..."></textarea>
+      <button id="sendMessageButton">Send</button>
+    </div>
+  </div>
+  <button id="chatToggle" class="chat-toggle">💬</button>
+  
+  <%- include("/home/lmnet/server/assets/chatAssets/chat1.js") %>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+ 
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Modal setup
+      const alertModal = new bootstrap.Modal(document.getElementById("alertModal"));
+      const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
+      const logContainer = document.getElementById("logs");
+  
+      const showModal = (message) => {
+        document.getElementById("responseModalBody").innerText = message;
+        responseModal.show();
+      };
+  
+      const alert = (message) => {
+        const alertMessageElement = document.getElementById("alertMessage");
+        alertMessageElement.textContent = message;
+        alertModal.show();
+      };
+  
+      const toggleLoading = (buttonId, spinnerId, checkId, isLoading) => {
+        const button = document.getElementById(buttonId);
+        const spinner = document.getElementById(spinnerId);
+        const check = document.getElementById(checkId);
+  
+        if (isLoading) {
+          button.disabled = true;
+          spinner.style.display = "inline-block";
+          check.style.display = "none";
+        } else {
+          button.disabled = false;
+          spinner.style.display = "none";
+          check.style.display = "inline-block";
+  
+          setTimeout(() => {
+            check.style.display = "none";
+          }, 5000);
+        }
+      };
+  
+      const sendServerAction = (buttonId, spinnerId, checkId, url, successMessage) => {
+        toggleLoading(buttonId, spinnerId, checkId, true);
+  
+        fetch(url, { method: "POST" })
+          .then((response) => response.text())
+          .then((result) => {
+            showModal(result);
+            console.log(successMessage);
+            toggleLoading(buttonId, spinnerId, checkId, false);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            showModal("An error occurred while processing your request.");
+            toggleLoading(buttonId, spinnerId, checkId, false);
+          });
+      };
+  
+      const fetchBots = () => {
+        fetch('/api/bots/new')
+          .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+          })
+          .then(bots => renderBots(bots))
+          .catch(error => console.error('Error fetching bots:', error));
+      };
+  
+      const renderBots = (bots) => {
+        const botsList = document.getElementById('botsList');
+        botsList.innerHTML = '';
+  
+        bots.forEach(bot => {
+          const botElement = document.createElement('div');
+          botElement.classList.add('bot');
+          botElement.setAttribute('data-name', bot.name);
+          botElement.innerHTML = `
+            <h4>${bot.name}</h4>
+            <p>Status: <span class="${bot.status === 'Online' ? 'text-success' : 'text-danger'}">${bot.status}</span></p>
+            <button class="btn btn-warning" onclick="runBot('${bot.name}')">Run</button>
+            <button class="btn btn-warning" onclick="stopBot('${bot.name}')">Stop</button>
+            <button class="btn btn-danger" onclick="deleteBot('${bot.name}')">Delete</button>
+          `;
+          botsList.appendChild(botElement);
+        });
+      };
+  
+      // Add Bot functionality
+      const sendDataToBackend = () => {
+        const name = document.getElementById('botNameInput').value.trim();
+        logActivity(`Create a bot - ${name}`)
+        if (!name) {
+          alert("Please enter a bot name.");
+          return;
+        }
+        fetch("/api/bot/new", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(error => {
+                throw new Error(error.message || "Failed to add bot");
+              });
+            }
+            return response.json();
+          })
+          .then(result => {
+            alert(result.message || "Bot added successfully");
+            fetchBots();
+            $('#botModal').modal('hide');
+          })
+          .catch(error => {
+            console.error("Error sending data:", error);
+            alert("Failed to add bot. Check the console for details.");
+          });
+      };
+  
+      // Bot actions
+  
+      window.runBot = (botName) => {
+        logActivity(`run bot - ${botName}`)
+      fetch(`/api/bots/run/${botName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || 'Bot started successfully');
+          fetchBots();
+        })
+        .catch(error => {
+          console.error('Error running bot:', error);
+          alert('Failed to start the bot.');
+        });
+    };
+
+    window.stopBot = (botName) => {
+      logActivity(`Stop bot - ${botName}`)
+      fetch(`/api/bots/stop/${botName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || 'Bot stopped successfully');
+          fetchBots();
+        })
+        .catch(error => {
+          console.error('Error stopping bot:', error);
+          alert('Failed to stop the bot.');
+        });
+    };
+
+    window.deleteBot = (botName) => {
+      logActivity(`Deleted bot - ${botName}`)
+      fetch(`/api/bots/${botName}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || 'Bot deleted successfully');
+          fetchBots();
+        })
+        .catch(error => {
+          console.error('Error deleting bot:', error);
+          alert('Failed to delete the bot.');
+        });
+    };
+
+    // Fetch bots initially and at intervals
+    fetchBots();
+    setInterval(fetchBots, 5000);
+      // Event listeners for buttons
+      document.getElementById("startButton").addEventListener("click", () => {
+        sendServerAction("startButton", "startSpinner", "startCheck", "/start", "Starting server...");
+        logActivity("Server Start")
+      });
+  
+      document.getElementById("restartButton").addEventListener("click", () => {
+        sendServerAction("restartButton", "restartSpinner", "restartCheck", "/restart", "Restarting server...");
+        logActivity("Server Restart")
+      });
+  
+      document.getElementById("stopButton").addEventListener("click", () => {
+        sendServerAction("stopButton", "stopSpinner", "stopCheck", "/stop", "Stopping server...");
+        logActivity("Server Stop")
+      });
+  
+      document.getElementById('closeAlertModal').addEventListener('click', () => alertModal.hide());
+      document.getElementById('botNameInput').addEventListener('change', sendDataToBackend);
+  
+      // Fetch bots at intervals
+      fetchBots();
+      setInterval(fetchBots, 5000);
+    });
+  </script>
+
+
+<script>
+  async function logActivity(action) {
+   // Generate a UTC+8 timestamp
+   const options = { timeZone: "Asia/Shanghai", hour12: false };
+   const formatter = new Intl.DateTimeFormat("en-US", {
+     ...options,
+     year: "numeric",
+     month: "2-digit",
+     day: "2-digit",
+     hour: "2-digit",
+     minute: "2-digit",
+     second: "2-digit",
+   });
+ 
+   const utc8Date = new Date();
+   const [datePart, timePart] = formatter.format(utc8Date).split(", ");
+   const [month, day, year] = datePart.split("/"); // Extract parts of the date
+   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+ 
+   const payload = {
+     user: "<%= username %>", // Replace with dynamic username if needed
+     action,
+     timestamp,
+   };
+ 
+   console.log("Payload to be sent:", payload); // Debugging
+ 
+   try {
+     const response = await fetch("/activity-log", {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify(payload),
+     });
+ 
+     if (!response.ok) {
+       const errorData = await response.json();
+       console.error("Failed to log activity:", errorData.error);
+     } else {
+       console.log("Activity logged:", payload);
+     }
+   } catch (error) {
+     console.error("Error logging activity:", error);
+   }
+ }
+ 
+ </script>
+  
+</body>
+</html>

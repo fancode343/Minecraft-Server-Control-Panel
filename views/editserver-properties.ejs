@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+ <%- include("/home/lmnet/server/assets/head") %> 
+  <style>
+    #message {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f0f0f0;
+      display: none;
+    }
+    #message.success { border-color: green; color: green; }
+    #message.error { border-color: red; color: red; }
+  </style>
+<body>
+<%- include("/home/lmnet/server/assets/nav") %> 
+
+<script>
+  async function logActivity(action) {
+   // Generate a UTC+8 timestamp
+   const options = { timeZone: "Asia/Shanghai", hour12: false };
+   const formatter = new Intl.DateTimeFormat("en-US", {
+     ...options,
+     year: "numeric",
+     month: "2-digit",
+     day: "2-digit",
+     hour: "2-digit",
+     minute: "2-digit",
+     second: "2-digit",
+   });
+ 
+   const utc8Date = new Date();
+   const [datePart, timePart] = formatter.format(utc8Date).split(", ");
+   const [month, day, year] = datePart.split("/"); // Extract parts of the date
+   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+ 
+   const payload = {
+     user: "<%= username %>", // Replace with dynamic username if needed
+     action,
+     timestamp,
+   };
+ 
+   console.log("Payload to be sent:", payload); // Debugging
+ 
+   try {
+     const response = await fetch("/activity-log", {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify(payload),
+     });
+ 
+     if (!response.ok) {
+       const errorData = await response.json();
+       console.error("Failed to log activity:", errorData.error);
+     } else {
+       console.log("Activity logged:", payload);
+     }
+   } catch (error) {
+     console.error("Error logging activity:", error);
+   }
+ }
+ 
+ </script>
+ 
+
+  <div class="container mt-5">
+    <h1 class="mt-4">Edit Server Properties</h1>
+    <div id="message" class="alert"></div>
+
+    <form id="properties-form">
+      <% for (const key in properties) { %>
+        <div class="form-group">
+          <label for="<%= key %>"><%= key %>:</label>
+          <input type="text" class="form-control" id="<%= key %>" name="<%= key %>" value="<%= properties[key] %>">
+        </div>
+      <% } %>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+  </div>
+
+  <div id="chatContainer" class="chat-container">
+    <div class="chat-header">
+      <h5>Chat</h5>
+      <button id="closeChatButton" class="close-chat">✖</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <textarea id="chatInput" rows="2" placeholder="Type a message..."></textarea>
+      <button id="sendMessageButton">Send</button>
+    </div>
+  </div>
+  <button id="chatToggle" class="chat-toggle">💬</button>
+  
+  <%- include("/home/lmnet/server/assets/chatAssets/chat1.js") %>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#properties-form").on("submit", function(e) {
+        e.preventDefault(); // Prevent form from submitting normally
+
+        const formData = $(this).serialize(); // Collect form data
+
+        $.ajax({
+          url: "/editserver-properties",
+          method: "POST",
+          data: formData,       
+          success: function(response) {
+            logActivity(`${formData}`)
+            const messageDiv = $("#message");
+            if (response.success) {
+              messageDiv
+                .text(response.message)
+                .addClass("alert-success")
+                .removeClass("alert-danger")
+                .slideDown();
+            } else {
+              messageDiv
+                .text(response.message)
+                .addClass("alert-danger")
+                .removeClass("alert-success")
+                .slideDown();
+            }
+          },
+          error: function() {
+            $("#message")
+              .text("An unexpected error occurred.")
+              .addClass("alert-danger")
+              .removeClass("alert-success")
+              .slideDown();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

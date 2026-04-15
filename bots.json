@@ -1,0 +1,14 @@
+[
+  {
+    "name": "bot1",
+    "status": "Online"
+  },
+  {
+    "name": "bot2",
+    "status": "Bot disconnected (exit code: 1)"
+  },
+  {
+    "name": "bot3",
+    "status": "offline"
+  }
+]

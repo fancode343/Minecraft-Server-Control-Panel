@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+ <%- include("/home/lmnet/server/assets/head") %> 
+<body>
+  <%- include("/home/lmnet/server/assets/nav") %> 
+
+  <div class="container mt-5">
+    <h1>Welcome, <%= username %>!</h1>
+    <div class="btn-group mb-4">
+      <div class="d-flex align-items-center">
+        <button id="startButton" class="btn btn-success">Start Server</button>
+        <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
+        <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="restartButton" class="btn btn-warning">Restart Server</button>
+        <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
+        <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+      <div class="d-flex align-items-center ml-3">
+        <button id="stopButton" class="btn btn-danger">Stop Server</button>
+        <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
+        <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
+      </div>
+    </div>
+
+    <h2>Server information</h2>
+    <h4>__________________________</h4>
+    <div>
+      <h4><b>IP:</b> singularity.smp.lmnet.cf</h4> 
+      <h4><b>PORT:</b> 19132</h4> 
+      <a href="https://freeminecraft.lmnet.cf/minecraftserver">Direct Input</a>
+    </div>
+    <div>
+      <h4>__________________________</h4>
+      <h4><b>SUB IP's</b></h4>
+      <h4>gjrj.lmnet.cf</h4>
+      <h4>control.panel.lmnet.cf</h4>
+    <h4>site.a.lmnet.cf</h4>
+    <h4>admin.a.lmnet.cf</h4>
+    <h4>ws1.lmnet.cf</h4>
+
+
+
+    </div>
+      <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="responseModalLabel">Server Response</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body" id="responseModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chatContainer" class="chat-container">
+    <div class="chat-header">
+      <h5>Chat</h5>
+      <button id="closeChatButton" class="close-chat">✖</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <textarea id="chatInput" rows="2" placeholder="Type a message..."></textarea>
+      <button id="sendMessageButton">Send</button>
+    </div>
+  </div>
+  <button id="chatToggle" class="chat-toggle">💬</button>
+  
+ <%- include("/home/lmnet/server/assets/chatAssets/chat1.js") %>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+ 
+  <script src="/assets/SSR.js"></script> <!--SSR function-->
+
+<script>
+  async function logActivity(action) {
+   // Generate a UTC+8 timestamp
+   const options = { timeZone: "Asia/Shanghai", hour12: false };
+   const formatter = new Intl.DateTimeFormat("en-US", {
+     ...options,
+     year: "numeric",
+     month: "2-digit",
+     day: "2-digit",
+     hour: "2-digit",
+     minute: "2-digit",
+     second: "2-digit",
+   });
+ 
+   const utc8Date = new Date();
+   const [datePart, timePart] = formatter.format(utc8Date).split(", ");
+   const [month, day, year] = datePart.split("/"); // Extract parts of the date
+   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+ 
+   const payload = {
+     user: "<%= username %>", // Replace with dynamic username if needed
+     action,
+     timestamp,
+   };
+ 
+   console.log("Payload to be sent:", payload); // Debugging
+ 
+   try {
+     const response = await fetch(`/activity-log`, {     //Bugo jud ning ChatGPT Ga lisod lisod ra sa kinabuhi nag http://localhost:3000 pajud hays
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify(payload),
+     });
+ 
+     if (!response.ok) {
+       const errorData = await response.json();
+       console.error("Failed to log activity:", errorData.error);
+     } else {
+       console.log("Activity logged:", payload);
+     }
+   } catch (error) {
+     console.error("Error logging activity:", error);
+   }
+ }
+ 
+ </script>
+</body>
+</html>
