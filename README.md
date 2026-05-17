@@ -38,8 +38,11 @@ With a modern design, powerful management tools, and efficient automation featur
   - ```npm install express express-session body-parser child_process ws fs googleapis fs-extra https child_process bedrock-protocol```
 
 **Run the program**
-- ```node index.js```
-- 
+```
+node index.js
+```
+
+
 **Ports that you need to open**
 ```
 3000 --> Server
