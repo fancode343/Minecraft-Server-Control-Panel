@@ -45,6 +45,7 @@ node index.js
 19132 --> Minecraft server port (You can change this on server.properties)
 ```
 > This panel is only design for Minecraft Bedrock Edition.
+> Panel Credentials (Username & Password) - ```credentials.json``` 
 
 
 
