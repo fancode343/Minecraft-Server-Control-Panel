@@ -24,10 +24,21 @@ With a modern design, powerful management tools, and efficient automation featur
 
 
 ## How it Works?
+**Edit index.js**
+- Paste your webhook url on line 14
+  - ```const WEBHOOK_URL = 'https://discord.com/api/webhooks/YOU_WENHOOK_URL';```
+- Put Your Google Drive Authentication on line 135-140 (For Backup purposes)
+  - ```const CLIENT_ID = "YOUR_ID";```
+  - ```const CLIENT_SECRET = "YOOUR_SECRET";```
+  - ```const REDIRECT_URI = "YOUR_URI";```
+  - ```const REFRESH_TOKEN = "YOUR_TOKEN";```
+
 **In your terminal**
-```
-node index.js
-```
+- Install need packages
+  - ```npm install express express-session body-parser child_process ws fs googleapis fs-extra https child_process bedrock-protocol```
+
+**Run the program**
+- ```node index.js```
 **Ports that you need to open**
 ```
 3000 --> Server
