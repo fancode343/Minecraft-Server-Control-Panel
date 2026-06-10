@@ -11,7 +11,7 @@ const fsExtra = require("fs-extra");
 const { exec } = require("child_process");
 const https = require('https');
 
-const WEBHOOK_URL = 'https://discord.com/api/webhooks/YOU_WENHOOK_URL';
+const WEBHOOK_URL = 'https://discord.com/api/webhooks/1455535116548968531/BDtyQipPMB8fp_mmZMK2kaEqAxVFntAywrFNwTV66uFoPPQW46beAuRmJqe4obk0uqtj';
 
 const PORT = 3000;
 const WS_PORT = 8080;
@@ -133,10 +133,10 @@ function updatePlayerStatus(playerName, status) {
 loadPlayers();
 
 // Google Drive Authentication
-const CLIENT_ID = "YOUR_ID";
-const CLIENT_SECRET = "YOOUR_SECRET";
-const REDIRECT_URI = "YOUR_URI";
-const REFRESH_TOKEN = "YOUR_TOKEN";
+const CLIENT_ID = "656806936758-3gu6etceoh3hml1tb6lq88r7hbcvp0n1.apps.googleusercontent.com";
+const CLIENT_SECRET = "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";
+const REDIRECT_URI = "https://developers.google.com/oauthplayground";
+const REFRESH_TOKEN = "1//049vBEoqfykyWCgYIARAAGAQSNwF-L9IrdOYbGyOi1fHRZNs0Cea2PrnK17KS1GO47pYrEJl-ZXPAhzpa34hvGTLhrXrcWuCFpZE";
 
 const oauth2Client = new google.auth.OAuth2(
   CLIENT_ID,

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
- <%- include("/home/lmnet/server/assets/head") %> 
+ <%- include("../assets/head") %> 
   <style>
     #message {
       margin: 10px 0;
@@ -13,7 +13,7 @@
     #message.error { border-color: red; color: red; }
   </style>
 <body>
-<%- include("/home/lmnet/server/assets/nav") %> 
+<%- include("../assets/nav") %> 
 
 <script>
   async function logActivity(action) {
@@ -93,7 +93,7 @@
   </div>
   <button id="chatToggle" class="chat-toggle">💬</button>
   
-  <%- include("/home/lmnet/server/assets/chatAssets/chat1.js") %>
+  <%- include("../assets/chatAssets/chat1.js") %>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

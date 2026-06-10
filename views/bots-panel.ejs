@@ -2,9 +2,9 @@
 
 <!DOCTYPE html>
 <html lang="en">
- <%- include("/home/lmnet/server/assets/head") %> 
+ <%- include("../assets/head") %> 
 <body>
-<%- include("/home/lmnet/server/assets/nav") %> 
+<%- include("../assets/nav") %> 
 
   <div class="container mt-5">
     <h1>Welcome, <%= username %>!</h1>
@@ -107,7 +107,7 @@
   </div>
   <button id="chatToggle" class="chat-toggle">💬</button>
   
-  <%- include("/home/lmnet/server/assets/chatAssets/chat1.js") %>
+  <%- include("../assets/chatAssets/chat1.js") %>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
