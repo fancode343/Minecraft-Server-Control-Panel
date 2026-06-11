@@ -979,9 +979,6 @@ app.post("/activity-log", authRequired, async (req, res) => {
   }
 });
 
-
-
-
 // Logout Route
 app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/auth"));
