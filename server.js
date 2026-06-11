@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+require("dotenv").config();
+
 
 app.use(require("./routes/auth"));
 app.use(require("./routes/dashboard"));
