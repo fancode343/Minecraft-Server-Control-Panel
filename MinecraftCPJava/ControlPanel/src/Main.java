@@ -6,6 +6,6 @@ public class Main {
         String num1 = input.nextLine();
         System.out.print("Enter second number: ");
         String num2 = input.nextLine();
-        System.out.println("Answer: "+num1+num2);
+        System.out.println("Answer = "+num1+num2);
     }
 }
