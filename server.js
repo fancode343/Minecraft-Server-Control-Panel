@@ -18,6 +18,7 @@ console.log("Loading services: ");
 const servicesPath = path.join(__dirname, "services");
 fs.readdirSync(servicesPath).forEach((file) => {
   if (file.endsWith(".js")) {
+    const servives = require(path.join(servicesPath, file));
     console.log(`   - ${file}`);
   }
 });

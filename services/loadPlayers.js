@@ -7,13 +7,13 @@ function loadPlayers() {
     try {
       const data = fs.readFileSync(playersFilePath, "utf-8");
       players = data.trim() ? JSON.parse(data) : {};
-      console.log("Loaded players from file:", players);
+      console.log("      - Loaded players from file:", players);
     } catch (error) {
-      console.error("Error parsing players.json:", error);
+      console.error("      - Error parsing players.json:", error);
       players = {};
     }
   } else {
-    console.log("No existing players file found. Starting fresh.");
+    console.log("      - No existing players file found. Starting fresh.");
     players = {};
   }
 }
