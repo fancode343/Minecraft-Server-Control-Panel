@@ -1,7 +1,7 @@
 // utils/discord.js
 const https = require("https");
 
-const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1455535116548968531/BDtyQipPMB8fp_mmZMK2kaEqAxVFntAywrFNwTV66uFoPPQW46beAuRmJqe4obk0uqtj";
 
 function sendMessageDis(content) {
   if (!content || content.trim() === "") return;

@@ -44,6 +44,8 @@ if (fs.existsSync(botsFilePath)) {
 
 const serverPropertiesPath = path.join(__dirname, "server", "server.properties");
 const playersFilePath = path.join(__dirname, "players.json");
+
+
 let players = {};
 const logs = [];
 const MAX_LOG_COUNT = 100;
@@ -76,28 +78,28 @@ function sendMessageDis(content) {
 
 
 
-// Load players from file
-function loadPlayers() {
-  if (fs.existsSync(playersFilePath)) {
-    try {
-      const data = fs.readFileSync(playersFilePath, "utf-8");
-      players = data.trim() ? JSON.parse(data) : {};
-      console.log("Loaded players from file:", players);
-    } catch (error) {
-      console.error("Error parsing players.json:", error);
-      players = {};
-    }
-  } else {
-    console.log("No existing players file found. Starting fresh.");
-    players = {};
-  }
-}
+// // Load players from file
+// function loadPlayers() {
+//   if (fs.existsSync(playersFilePath)) {
+//     try {
+//       const data = fs.readFileSync(playersFilePath, "utf-8");
+//       players = data.trim() ? JSON.parse(data) : {};
+//       console.log("Loaded players from file:", players);
+//     } catch (error) {
+//       console.error("Error parsing players.json:", error);
+//       players = {};
+//     }
+//   } else {
+//     console.log("No existing players file found. Starting fresh.");
+//     players = {};
+//   }
+// }
 
-// Save players to file
-function savePlayers() {
-  fs.writeFileSync(playersFilePath, JSON.stringify(players, null, 2), "utf-8");
-  console.log("Saved players to file.");
-}
+// // Save players to file
+// function savePlayers() {
+//   fs.writeFileSync(playersFilePath, JSON.stringify(players, null, 2), "utf-8");
+//   console.log("Saved players to file.");
+// }
 
 // Parse server.properties content
 function parseProperties(fileContent) {
@@ -118,19 +120,20 @@ function stringifyProperties(properties) {
     .join("\n");
 }
 
-// Middleware: Authentication check
-function authRequired(req, res, next) {
-  if (req.session && req.session.loggedIn) return next();
-  res.redirect("/auth");
-}
 
-// Update player status
-function updatePlayerStatus(playerName, status) {
-  players[playerName] = status;
-}
 
-// Initialize players from file
-loadPlayers();
+
+// // Middleware: Authentication check
+// function authRequired(req, res, next) {
+//   if (req.session && req.session.loggedIn) return next();
+//   res.redirect("/auth");
+// }
+
+// // Update player status
+// function updatePlayerStatus(playerName, status) {
+//   players[playerName] = status;
+// }
+// loadPlayers();
 
 // Google Drive Authentication
 const CLIENT_ID = "YOUR_ID";
@@ -276,7 +279,7 @@ wsss.on("connection", (ws) => {
 
 
 // Routes
-app.get("/", authRequired, (req, res) => res.redirect("/dashboard"));
+// app.get("/", authRequired, (req, res) => res.redirect("/dashboard"));
 
 app.get('/auth', (req, res) => {
   res.render("login");
@@ -286,44 +289,44 @@ app.get('/api/bots/new/', authRequired, (req, res) => {
   res.json(bots); // `bots` should be an array containing your bot data
 });
 
-app.use('/assets', express.static(path.join(__dirname, 'assets' )));
+// app.use('/assets', express.static(path.join(__dirname, 'assets' )));
 
 
-app.post("/auth", (req, res) => {
-  const { username, password } = req.body;
+// app.post("/auth", (req, res) => {
+//   const { username, password } = req.body;
 
-  // Load credentials from credentials.json
-  const credentialsPath = path.join(__dirname, "credentials.json");
-  fs.readFile(credentialsPath, "utf-8", (err, data) => {
-    if (err) {
-      console.error("Error reading credentials file:", err);
-      return res.status(500).render("login", { error: "Server error. Please try again later." });
-       sendMessageDis("Server is error");
-    }
+//   // Load credentials from credentials.json
+//   const credentialsPath = path.join(__dirname, "credentials.json");
+//   fs.readFile(credentialsPath, "utf-8", (err, data) => {
+//     if (err) {
+//       console.error("Error reading credentials file:", err);
+//       return res.status(500).render("login", { error: "Server error. Please try again later." });
+//        sendMessageDis("Server is error");
+//     }
 
-    let users;
-    try {
-      users = JSON.parse(data); // Parse JSON content
-    } catch (parseErr) {
-      console.error("Error parsing credentials file:", parseErr);
-      return res.status(500).render("login", { error: "Server error. Please try again later." });
-      sendMessageDis("Server is error");
-    }
+//     let users;
+//     try {
+//       users = JSON.parse(data); // Parse JSON content
+//     } catch (parseErr) {
+//       console.error("Error parsing credentials file:", parseErr);
+//       return res.status(500).render("login", { error: "Server error. Please try again later." });
+//       sendMessageDis("Server is error");
+//     }
 
-    // Check credentials
-    if (users[username] === password) {
-      req.session.loggedIn = true;
-      req.session.username = username;
-       sendMessageDis(`:white_check_mark:**${username}** has logged in to the panel`);
-      return res.redirect("/dashboard");
-    }
+//     // Check credentials
+//     if (users[username] === password) {
+//       req.session.loggedIn = true;
+//       req.session.username = username;
+//        sendMessageDis(`:white_check_mark:**${username}** has logged in to the panel`);
+//       return res.redirect("/dashboard");
+//     }
 
-    // Invalid login
-    res.render("login", { error: "Invalid username or password" });
-    sendMessageDis(`:x: Someone is trying to login\n\n**Username:** ${username}\n**Password: **${password}\n`);
+//     // Invalid login
+//     res.render("login", { error: "Invalid username or password" });
+//     sendMessageDis(`:x: Someone is trying to login\n\n**Username:** ${username}\n**Password: **${password}\n`);
     
-  });
-});
+//   });
+// });
 
 
 // Create New Bot
@@ -557,7 +560,7 @@ app.get("/command-center", authRequired, (req, res) => {
   res.render("command-center", { username: req.session.username });
 });
 
-let runningProcesses = {}; // Track running bot processes
+// let runningProcesses = {}; // Track running bot processes
 
 // Run Bot
 app.post('/api/bots/run/:name', authRequired, (req, res) => {

@@ -4,6 +4,10 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
 
+//LoadPlayers
+const loadPlayers = require("./services/loadPlayers");
+const MCbot = require("./services/MCbot");
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -17,6 +21,7 @@ app.set("view engine", "ejs");
 app.use(require("./routes/auth"));
 app.use(require("./routes/dashboard"));
 app.use(require("./routes/bots"));
+app.use(require("./routes/pages"));
 //app.use(require("./routes/minecraftServer"));
 //app.use(require("./routes/backup"));
 //app.use(require("./routes/serverProperties"));

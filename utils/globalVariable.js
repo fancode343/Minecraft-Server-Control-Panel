@@ -1,0 +1,2 @@
+let players = {};
+let runningProcesses = {};
