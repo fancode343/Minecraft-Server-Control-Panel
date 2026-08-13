@@ -102,23 +102,23 @@ if (fs.existsSync(botsFilePath)) {
 // }
 
 // Parse server.properties content
-function parseProperties(fileContent) {
-  return fileContent
-    .split("\n")
-    .filter((line) => line.trim() && !line.startsWith("#"))
-    .reduce((properties, line) => {
-      const [key, value] = line.split("=").map((part) => part.trim());
-      properties[key] = value;
-      return properties;
-    }, {});
-}
+// function parseProperties(fileContent) {
+//   return fileContent
+//     .split("\n")
+//     .filter((line) => line.trim() && !line.startsWith("#"))
+//     .reduce((properties, line) => {
+//       const [key, value] = line.split("=").map((part) => part.trim());
+//       properties[key] = value;
+//       return properties;
+//     }, {});
+// }
 
 // Convert object to server.properties format
-function stringifyProperties(properties) {
-  return Object.entries(properties)
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
-}
+// function stringifyProperties(properties) {
+//   return Object.entries(properties)
+//     .map(([key, value]) => `${key}=${value}`)
+//     .join("\n");
+// }
 
 
 
@@ -189,93 +189,98 @@ function stringifyProperties(properties) {
 
 
 // Middleware setup
-app.use(
-  session({
-    secret: "minecraft_server_secret", // Change this to a secure value in production
-    resave: false,
-    saveUninitialized: true,
-  })
-);
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.set("view engine", "ejs");
-
-// WebSocket setup
-const wss = new WebSocketServer({ noServer: true });
-function broadcastLogs(message) {
-  const logEntry = typeof message === "object" ? message.message : message;
-  logs.push(logEntry);
-  if (logs.length > MAX_LOG_COUNT) logs.shift();
-  wss.clients.forEach((client) => {
-    if (client.readyState === client.OPEN) client.send(logEntry);
-  });
-}
-
-const wsss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
-console.log(`WebSocket server running on ws://localhost:${WS_PORT}`);
-const messagesFilePath = path.join(__dirname, "messages.json");
-if (!fs.existsSync(messagesFilePath)) {
-  fs.writeFileSync(messagesFilePath, JSON.stringify([]), "utf8");
-}
+// app.use(
+//   session({
+//     secret: "minecraft_server_secret", // Change this to a secure value in production
+//     resave: false,
+//     saveUninitialized: true,
+//   })
+// );
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(express.static("public"));
+// app.set("view engine", "ejs");
 
 
-// Load messages from file
-function loadMessages() {
-  try {
-    return JSON.parse(fs.readFileSync(messagesFilePath, "utf8"));
-  } catch (error) {
-    console.error("Error reading messages.json:", error);
-    return [];
-  }
-}
 
-// Save messages to file
-function saveMessages(messages) {
-  try {
-    fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2), "utf8");
-  } catch (error) {
-    console.error("Error writing to messages.json:", error);
-  }
-}
 
-// WebSocket server logic
-const messages = loadMessages(); // Load messages globally
 
-wsss.on("connection", (ws) => {
-  console.log("New WebSocket connection established.");
 
-  // Send chat history to the newly connected client
-  ws.send(JSON.stringify({ type: "history", data: messages }));
+// // WebSocket setup
+// const wss = new WebSocketServer({ noServer: true });
+// function broadcastLogs(message) {
+//   const logEntry = typeof message === "object" ? message.message : message;
+//   logs.push(logEntry);
+//   if (logs.length > MAX_LOG_COUNT) logs.shift();
+//   wss.clients.forEach((client) => {
+//     if (client.readyState === client.OPEN) client.send(logEntry);
+//   });
+// }
 
-  // Handle incoming messages
-  ws.on("message", (message) => {
-    console.log("Received message:", message);
+// const wsss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
+// console.log(`WebSocket server running on ws://localhost:${WS_PORT}`);
+// const messagesFilePath = path.join(__dirname, "messages.json");
+// if (!fs.existsSync(messagesFilePath)) {
+//   fs.writeFileSync(messagesFilePath, JSON.stringify([]), "utf8");
+// }
 
-    let parsedMessage;
-    try {
-      parsedMessage = JSON.parse(message); // Parse the incoming JSON
-    } catch (error) {
-      console.error("Invalid JSON received:", message);
-      ws.send(JSON.stringify({ type: "error", message: "Invalid message format" }));
-      return;
-    }
 
-    // Add the new message to the global `messages` array
-    messages.push(parsedMessage);
-    saveMessages(messages); // Persist the updated messages to file
+// // Load messages from file
+// function loadMessages() {
+//   try {
+//     return JSON.parse(fs.readFileSync(messagesFilePath, "utf8"));
+//   } catch (error) {
+//     console.error("Error reading messages.json:", error);
+//     return [];
+//   }
+// }
 
-    // Broadcast the message to all connected clients
-    wsss.clients.forEach((client) => {
-      if (client.readyState === client.OPEN) {
-        client.send(JSON.stringify({ type: "message", data: parsedMessage }));
-      }
-    });
-  });
+// // Save messages to file
+// function saveMessages(messages) {
+//   try {
+//     fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2), "utf8");
+//   } catch (error) {
+//     console.error("Error writing to messages.json:", error);
+//   }
+// }
 
-  ws.on("close", () => {
-    console.log("WebSocket connection closed.");
-  });
-});
+// // WebSocket server logic
+// const messages = loadMessages(); // Load messages globally
+
+// wsss.on("connection", (ws) => {
+//   console.log("New WebSocket connection established.");
+
+//   // Send chat history to the newly connected client
+//   ws.send(JSON.stringify({ type: "history", data: messages }));
+
+//   // Handle incoming messages
+//   ws.on("message", (message) => {
+//     console.log("Received message:", message);
+
+//     let parsedMessage;
+//     try {
+//       parsedMessage = JSON.parse(message); // Parse the incoming JSON
+//     } catch (error) {
+//       console.error("Invalid JSON received:", message);
+//       ws.send(JSON.stringify({ type: "error", message: "Invalid message format" }));
+//       return;
+//     }
+
+//     // Add the new message to the global `messages` array
+//     messages.push(parsedMessage);
+//     saveMessages(messages); // Persist the updated messages to file
+
+//     // Broadcast the message to all connected clients
+//     wsss.clients.forEach((client) => {
+//       if (client.readyState === client.OPEN) {
+//         client.send(JSON.stringify({ type: "message", data: parsedMessage }));
+//       }
+//     });
+//   });
+
+//   ws.on("close", () => {
+//     console.log("WebSocket connection closed.");
+//   });
+// });
 
 
 // Routes
@@ -663,43 +668,43 @@ app.delete('/api/bots/:name', authRequired, (req, res) => {
   res.json({ message: 'Bot deleted successfully' });
 });
 
-// Start Server
-app.post("/start", authRequired, (req, res) => {
-  if (!minecraftProcess) {
-    try {
-      minecraftProcess = spawn("./bedrock_server", [], {
-        cwd: "./server",
-        env: { ...process.env, LD_LIBRARY_PATH: "./server" },
-      });
+// // Start Server
+// app.post("/start", authRequired, (req, res) => {
+//   if (!minecraftProcess) {
+//     try {
+//       minecraftProcess = spawn("./bedrock_server", [], {
+//         cwd: "./server",
+//         env: { ...process.env, LD_LIBRARY_PATH: "./server" },
+//       });
 
-      minecraftProcess.stdout.on("data", (data) => {
-        const message = data.toString().trim();
-        broadcastLogs(`[Server]: ${message}`);
-        if (message.includes("Server started.")) {
-          broadcastLogs("[Server]: Server successfully started.");
-          res.send("Server Started");
-        }
-      });
+//       minecraftProcess.stdout.on("data", (data) => {
+//         const message = data.toString().trim();
+//         broadcastLogs(`[Server]: ${message}`);
+//         if (message.includes("Server started.")) {
+//           broadcastLogs("[Server]: Server successfully started.");
+//           res.send("Server Started");
+//         }
+//       });
 
-      minecraftProcess.stderr.on("data", (data) => {
-        broadcastLogs(`[Error]: ${data.toString().trim()}`);
-      });
+//       minecraftProcess.stderr.on("data", (data) => {
+//         broadcastLogs(`[Error]: ${data.toString().trim()}`);
+//       });
 
-      minecraftProcess.on("close", (code) => {
-        broadcastLogs(`[Server]: Minecraft server stopped with code ${code}`);
-        minecraftProcess = null;
-      });
+//       minecraftProcess.on("close", (code) => {
+//         broadcastLogs(`[Server]: Minecraft server stopped with code ${code}`);
+//         minecraftProcess = null;
+//       });
 
-      broadcastLogs("[Server]: Starting server...");
-    } catch (error) {
-      console.error("Error starting server:", error);
-      res.status(500).send("Error starting the server.");
-    }
-  } else {
-    broadcastLogs("[Server]: Server is already running.");
-    res.send("Server is already running.");
-  }
-});
+//       broadcastLogs("[Server]: Starting server...");
+//     } catch (error) {
+//       console.error("Error starting server:", error);
+//       res.status(500).send("Error starting the server.");
+//     }
+//   } else {
+//     broadcastLogs("[Server]: Server is already running.");
+//     res.send("Server is already running.");
+//   }
+// });
 
 // Restart Server
 app.post("/restart", authRequired, (req, res) => {
@@ -992,9 +997,9 @@ app.post("/api/backup", authRequired, async (req, res) => {
 //   console.log(`App running at http://localhost:${PORT}`);
 // });
 
-server.on("upgrade", (req, socket, head) => {
-  wss.handleUpgrade(req, socket, head, (ws) => {
-    ws.send(JSON.stringify(logs));
-    wss.emit("connection", ws, req);
-  });
-});
+// server.on("upgrade", (req, socket, head) => {
+//   wss.handleUpgrade(req, socket, head, (ws) => {
+//     ws.send(JSON.stringify(logs));
+//     wss.emit("connection", ws, req);
+//   });
+// });

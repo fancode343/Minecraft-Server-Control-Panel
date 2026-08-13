@@ -318,5 +318,90 @@
     "user": "ADMIN",
     "action": "allowlist remove PlayerTwo",
     "timestamp": "2026-08-13T22:55:10+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:02:31+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:04:48+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:05:23+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:08:18+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:11:04+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:13:55+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:23:57+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:27:57+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Restarted",
+    "timestamp": "2026-08-14T00:28:06+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-14T00:28:11+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:28:14+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:34:17+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:35:16+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-14T00:37:22+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Create a bot - asdasd",
+    "timestamp": "2026-08-14T00:37:54+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "allowlist add Player",
+    "timestamp": "2026-08-14T00:37:58+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "allowlist add Player",
+    "timestamp": "2026-08-14T00:38:01+08:00"
   }
 ]
