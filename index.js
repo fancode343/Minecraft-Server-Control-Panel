@@ -1,28 +1,28 @@
-const express = require("express");
-const session = require("express-session");
-const bodyParser = require("body-parser");
-const { spawn } = require("child_process");
-const { WebSocketServer } = require("ws");
-const fs = require("fs");
-const path = require("path");
-const cors = require('cors');
-const { google } = require("googleapis");
-const fsExtra = require("fs-extra");
-const { exec } = require("child_process");
-const https = require('https');
+// const express = require("express");
+// const session = require("express-session");
+// const bodyParser = require("body-parser");
+// const { spawn } = require("child_process");
+// const { WebSocketServer } = require("ws");
+// const fs = require("fs");
+// const path = require("path");
+// const cors = require('cors');
+// const { google } = require("googleapis");
+// const fsExtra = require("fs-extra");
+// const { exec } = require("child_process");
+// const https = require('https');
 
-const WEBHOOK_URL = 'https://discord.com/api/webhooks/YOU_WENHOOK_URL';
+// const WEBHOOK_URL = 'https://discord.com/api/webhooks/YOU_WENHOOK_URL';
 
-const PORT = 3000;
-const WS_PORT = 8080;
+// const PORT = 3000;
+// const WS_PORT = 8080;
 
-const app = express();
-app.use(express.json()); // Parse JSON payloads
-app.use(cors());
+// const app = express();
+// app.use(express.json()); // Parse JSON payloads
+// app.use(cors());
 
 // Ensure necessary directories exist
-const downloadsPath = path.join(__dirname, "downloads");
-const serverWorldsPath = path.join(__dirname, "server", "worlds");
+// const downloadsPath = path.join(__dirname, "downloads");
+// const serverWorldsPath = path.join(__dirname, "server", "worlds");
 
 if (!fs.existsSync(serverWorldsPath)) {
   fs.mkdirSync(serverWorldsPath, { recursive: true });
@@ -42,39 +42,39 @@ if (fs.existsSync(botsFilePath)) {
   }
 }
 
-const serverPropertiesPath = path.join(__dirname, "server", "server.properties");
-const playersFilePath = path.join(__dirname, "players.json");
+// const serverPropertiesPath = path.join(__dirname, "server", "server.properties");
+// const playersFilePath = path.join(__dirname, "players.json");
 
 
-let players = {};
-const logs = [];
-const MAX_LOG_COUNT = 100;
-let minecraftProcess = null;
+// let players = {};
+// const logs = [];
+// const MAX_LOG_COUNT = 100;
+// let minecraftProcess = null;
 
-//Webhook
-function sendMessageDis(content) {
-  if (!content || content.trim() === "") return;
+// //Webhook
+// function sendMessageDis(content) {
+//   if (!content || content.trim() === "") return;
 
-  content = content.toString().replace(/[^\x20-\x7E\n\r]/g, "");
+//   content = content.toString().replace(/[^\x20-\x7E\n\r]/g, "");
 
-  // --- Discord ---
-  const data = JSON.stringify({ content });
-  const url = new URL(WEBHOOK_URL);
+//   // --- Discord ---
+//   const data = JSON.stringify({ content });
+//   const url = new URL(WEBHOOK_URL);
 
-  const req = https.request({
-    hostname: url.hostname,
-    path: url.pathname + url.search,
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(data)
-    }
-  });
+//   const req = https.request({
+//     hostname: url.hostname,
+//     path: url.pathname + url.search,
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "Content-Length": Buffer.byteLength(data)
+//     }
+//   });
 
-  req.on("error", console.error);
-  req.write(data);
-  req.end();
-}
+//   req.on("error", console.error);
+//   req.write(data);
+//   req.end();
+// }
 
 
 
@@ -136,55 +136,55 @@ function stringifyProperties(properties) {
 // loadPlayers();
 
 // Google Drive Authentication
-const CLIENT_ID = "YOUR_ID";
-const CLIENT_SECRET = "YOOUR_SECRET";
-const REDIRECT_URI = "YOUR_URI";
-const REFRESH_TOKEN = "YOUR_TOKEN";
+// const CLIENT_ID = "YOUR_ID";
+// const CLIENT_SECRET = "YOOUR_SECRET";
+// const REDIRECT_URI = "YOUR_URI";
+// const REFRESH_TOKEN = "YOUR_TOKEN";
 
-const oauth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-);
-oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+// const oauth2Client = new google.auth.OAuth2(
+//   CLIENT_ID,
+//   CLIENT_SECRET,
+//   REDIRECT_URI
+// );
+// oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
-const drive = google.drive({ version: "v3", auth: oauth2Client });
+// const drive = google.drive({ version: "v3", auth: oauth2Client });
 
-// Function to list files from a Google Drive folder
-async function listFiles(folderId) {
-  const response = await drive.files.list({
-    q: `'${folderId}' in parents and trashed=false`,
-    fields: "files(id, name)",
-  });
-  return response.data.files;
-}
+// // Function to list files from a Google Drive folder
+// async function listFiles(folderId) {
+//   const response = await drive.files.list({
+//     q: `'${folderId}' in parents and trashed=false`,
+//     fields: "files(id, name)",
+//   });
+//   return response.data.files;
+// }
 
-// Function to download a file from Google Drive
-async function downloadFile(fileId, destination) {
-  const dest = fs.createWriteStream(destination);
-  return new Promise((resolve, reject) => {
-    drive.files.get(
-      { fileId, alt: "media" },
-      { responseType: "stream" },
-      (err, res) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        res.data
-          .on("end", () => {
-            console.log(`File downloaded to ${destination}`);
-            resolve();
-          })
-          .on("error", (err) => {
-            console.error("Error downloading file.");
-            reject(err);
-          })
-          .pipe(dest);
-      }
-    );
-  });
-}
+// // Function to download a file from Google Drive
+// async function downloadFile(fileId, destination) {
+//   const dest = fs.createWriteStream(destination);
+//   return new Promise((resolve, reject) => {
+//     drive.files.get(
+//       { fileId, alt: "media" },
+//       { responseType: "stream" },
+//       (err, res) => {
+//         if (err) {
+//           reject(err);
+//           return;
+//         }
+//         res.data
+//           .on("end", () => {
+//             console.log(`File downloaded to ${destination}`);
+//             resolve();
+//           })
+//           .on("error", (err) => {
+//             console.error("Error downloading file.");
+//             reject(err);
+//           })
+//           .pipe(dest);
+//       }
+//     );
+//   });
+// }
 
 
 
@@ -281,9 +281,9 @@ wsss.on("connection", (ws) => {
 // Routes
 // app.get("/", authRequired, (req, res) => res.redirect("/dashboard"));
 
-app.get('/auth', (req, res) => {
-  res.render("login");
-});
+// app.get('/auth', (req, res) => {
+//   res.render("login");
+// });
 
 app.get('/api/bots/new/', authRequired, (req, res) => {
   res.json(bots); // `bots` should be an array containing your bot data
@@ -429,16 +429,16 @@ if (fs.existsSync(path.join(__dirname, 'bots.json'))) {
   bots = [];
 }
 
-// Panel Route
-app.get("/dashboard", authRequired, (req, res) => {
-  const settingsParam = req.query.settings;
+// // Panel Route
+// app.get("/dashboard", authRequired, (req, res) => {
+//   const settingsParam = req.query.settings;
 
-  if (settingsParam === "1") {
-    res.render("settings", { username: req.session.username });
-  } else {
-    res.render("panel", { username: req.session.username });
-  }
-});
+//   if (settingsParam === "1") {
+//     res.render("settings", { username: req.session.username });
+//   } else {
+//     res.render("panel", { username: req.session.username });
+//   }
+// });
 
 app.post("/save-settings", authRequired, (req, res) => {
   const { oldPassword, password } = req.body;
@@ -507,58 +507,58 @@ app.post("/save-settings", authRequired, (req, res) => {
 });
 
 
-// Bots Panel Route
-app.get("/bots-panel", authRequired, (req, res) => {
-  res.render("bots-panel", { username: req.session.username });
-});
 
-app.get("/Allowlist", authRequired, (req, res) => {
-  res.render("allowlist", { username: req.session.username });
-})
+// app.get("/bots-panel", authRequired, (req, res) => {
+//   res.render("bots-panel", { username: req.session.username });
+// });
 
-app.get("/server-info", authRequired, (req, res) => {
-  res.render("server-info", { username: req.session.username });
-});
+// app.get("/Allowlist", authRequired, (req, res) => {
+//   res.render("allowlist", { username: req.session.username });
+// })
 
-app.get("/activitylogs", authRequired, (req, res) => {
-  res.render("activity-log", { username: req.session.username });
-});
+// app.get("/server-info", authRequired, (req, res) => {
+//   res.render("server-info", { username: req.session.username });
+// });
 
-app.get("/activitylogss", authRequired, (req, res) => {
-  const messageFilePath = path.join(__dirname, "activity_log.json");
+// app.get("/activitylogs", authRequired, (req, res) => {
+//   res.render("activity-log", { username: req.session.username });
+// });
 
-  // Read the JSON file
-  fs.readFile(messageFilePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error("Error reading activity_log.json:", err);
-      return res.status(500).json({ error: "Failed to load activity logs." });
-    }
+// app.get("/activitylogss", authRequired, (req, res) => {
+//   const messageFilePath = path.join(__dirname, "activity_log.json");
 
-    try {
-      // Parse JSON data
-      let logs = JSON.parse(data);
+//   // Read the JSON file
+//   fs.readFile(messageFilePath, 'utf8', (err, data) => {
+//     if (err) {
+//       console.error("Error reading activity_log.json:", err);
+//       return res.status(500).json({ error: "Failed to load activity logs." });
+//     }
 
-      // Ensure it's an array if not
-      if (!Array.isArray(logs)) {
-        logs = [logs];
-      }
+//     try {
+//       // Parse JSON data
+//       let logs = JSON.parse(data);
 
-      // Sort logs by timestamp
-      logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+//       // Ensure it's an array if not
+//       if (!Array.isArray(logs)) {
+//         logs = [logs];
+//       }
 
-      // Send the sorted logs as a response
-      res.json(logs);
-    } catch (parseError) {
-      console.error("Error parsing JSON:", parseError);
-      res.status(500).json({ error: "Invalid JSON format in activity_log.json." });
-    }
-  });
-});
+//       // Sort logs by timestamp
+//       logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+//       // Send the sorted logs as a response
+//       res.json(logs);
+//     } catch (parseError) {
+//       console.error("Error parsing JSON:", parseError);
+//       res.status(500).json({ error: "Invalid JSON format in activity_log.json." });
+//     }
+//   });
+// });
 
 // Command Center Route
-app.get("/command-center", authRequired, (req, res) => {
-  res.render("command-center", { username: req.session.username });
-});
+// app.get("/command-center", authRequired, (req, res) => {
+//   res.render("command-center", { username: req.session.username });
+// });
 
 // let runningProcesses = {}; // Track running bot processes
 
@@ -894,103 +894,103 @@ app.post("/api/backup", authRequired, async (req, res) => {
 });
 
 // Edit Server Properties
-app.get("/editserver-properties", authRequired, (req, res) => {
-  try {
-    const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
-    const properties = parseProperties(fileContent);
+// app.get("/editserver-properties", authRequired, (req, res) => {
+//   try {
+//     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
+//     const properties = parseProperties(fileContent);
 
-    // Combine `properties` and `username` into a single object
-    res.render("editserver-properties", {
-      properties,
-      username: req.session.username || "Admin", // Provide a default value if `username` is undefined
-    });
-  } catch (error) {
-    res.status(500).send("Error reading server.properties file");
-  }
-});
+//     // Combine `properties` and `username` into a single object
+//     res.render("editserver-properties", {
+//       properties,
+//       username: req.session.username || "Admin", // Provide a default value if `username` is undefined
+//     });
+//   } catch (error) {
+//     res.status(500).send("Error reading server.properties file");
+//   }
+// });
 
-const allowlistPath = path.join(__dirname, "server/allowlist.json");
+// const allowlistPath = path.join(__dirname, "server/allowlist.json");
 
 // Endpoint to fetch the allowlist
-app.get("/getAllowlist", (req, res) => {
-  fs.readFile(allowlistPath, "utf-8", (err, data) => {
-    if (err) {
-      console.error("Error reading allowlist.json:", err);
-      return res.status(500).send("Internal Server Error");
-    }
-    try {
-      const allowlist = JSON.parse(data);
-      res.json(allowlist); // Send allowlist as JSON
-    } catch (parseError) {
-      console.error("Error parsing allowlist.json:", parseError);
-      res.status(500).send("Internal Server Error");
-    }
-  });
-});
+// app.get("/getAllowlist", (req, res) => {
+//   fs.readFile(allowlistPath, "utf-8", (err, data) => {
+//     if (err) {
+//       console.error("Error reading allowlist.json:", err);
+//       return res.status(500).send("Internal Server Error");
+//     }
+//     try {
+//       const allowlist = JSON.parse(data);
+//       res.json(allowlist); // Send allowlist as JSON
+//     } catch (parseError) {
+//       console.error("Error parsing allowlist.json:", parseError);
+//       res.status(500).send("Internal Server Error");
+//     }
+//   });
+// });
 
 // Update Server Properties
-app.post("/editserver-properties", authRequired, (req, res) => {
-  try {
-    const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
-    const properties = parseProperties(fileContent);
-    const editableKeys = ["difficulty", "view-distance", "gamemode", "max-players", "server-name", "level-name", "texturepack-required", "level-seed", "tick-distance"];
+// app.post("/editserver-properties", authRequired, (req, res) => {
+//   try {
+//     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
+//     const properties = parseProperties(fileContent);
+//     const editableKeys = ["difficulty", "view-distance", "gamemode", "max-players", "server-name", "level-name", "texturepack-required", "level-seed", "tick-distance"];
 
-    editableKeys.forEach((key) => {
-      if (req.body[key] !== undefined) properties[key] = req.body[key];
-    });
+//     editableKeys.forEach((key) => {
+//       if (req.body[key] !== undefined) properties[key] = req.body[key];
+//     });
 
-    fs.writeFileSync(serverPropertiesPath, stringifyProperties(properties), "utf-8");
-    res.json({ success: true, message: "Server properties updated successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Error updating server.properties file" });
-  }
-});
+//     fs.writeFileSync(serverPropertiesPath, stringifyProperties(properties), "utf-8");
+//     res.json({ success: true, message: "Server properties updated successfully" });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: "Error updating server.properties file" });
+//   }
+// });
 
-const activityLogPath = path.join(__dirname, "activity_log.json");
-if (!fs.existsSync(activityLogPath)) {
-  fs.writeFileSync(activityLogPath, JSON.stringify([]), "utf8");
-}
+// const activityLogPath = path.join(__dirname, "activity_log.json");
+// if (!fs.existsSync(activityLogPath)) {
+//   fs.writeFileSync(activityLogPath, JSON.stringify([]), "utf8");
+// }
 
-app.post("/activity-log", authRequired, async (req, res) => {
-  const { user, action, timestamp } = req.body;
+// app.post("/activity-log", authRequired, async (req, res) => {
+//   const { user, action, timestamp } = req.body;
 
-  console.log("Request body received:", req.body);
+//   console.log("Request body received:", req.body);
 
-  if (!user || !action || !timestamp) {
-    console.error("Invalid activity data:", req.body);
-    return res.status(400).json({ error: "Invalid activity data" });
-  }
+//   if (!user || !action || !timestamp) {
+//     console.error("Invalid activity data:", req.body);
+//     return res.status(400).json({ error: "Invalid activity data" });
+//   }
 
-  // Validate the timestamp
-  const utc8Date = new Date(timestamp);
-  if (isNaN(utc8Date.getTime())) {
-    console.error("Invalid timestamp format:", timestamp);
-    return res.status(400).json({ error: "Invalid timestamp format" });
-  }
+//   // Validate the timestamp
+//   const utc8Date = new Date(timestamp);
+//   if (isNaN(utc8Date.getTime())) {
+//     console.error("Invalid timestamp format:", timestamp);
+//     return res.status(400).json({ error: "Invalid timestamp format" });
+//   }
 
-  // Append log with validated timestamp
-  try {
-    const logs = JSON.parse(fs.readFileSync(activityLogPath, "utf8"));
-    logs.push({ user, action, timestamp });
-    fs.writeFileSync(activityLogPath, JSON.stringify(logs, null, 2), "utf8");
+//   // Append log with validated timestamp
+//   try {
+//     const logs = JSON.parse(fs.readFileSync(activityLogPath, "utf8"));
+//     logs.push({ user, action, timestamp });
+//     fs.writeFileSync(activityLogPath, JSON.stringify(logs, null, 2), "utf8");
 
-    console.log("Activity logged successfully");
-    res.status(200).json({ message: "Activity logged successfully" });
-  } catch (error) {
-    console.error("Error logging activity:", error);
-    res.status(500).json({ error: "Failed to log activity" });
-  }
-});
+//     console.log("Activity logged successfully");
+//     res.status(200).json({ message: "Activity logged successfully" });
+//   } catch (error) {
+//     console.error("Error logging activity:", error);
+//     res.status(500).json({ error: "Failed to log activity" });
+//   }
+// });
 
 // Logout Route
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/auth"));
-});
+// app.get("/logout", (req, res) => {
+//   req.session.destroy(() => res.redirect("/auth"));
+// });
 
 // WebSocket Handling
-const server = app.listen(PORT, () => {
-  console.log(`App running at http://localhost:${PORT}`);
-});
+// const server = app.listen(PORT, () => {
+//   console.log(`App running at http://localhost:${PORT}`);
+// });
 
 server.on("upgrade", (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, (ws) => {
