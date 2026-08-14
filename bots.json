@@ -1,14 +1,14 @@
 [
   {
-    "name": "bot1",
-    "status": "Online"
+    "name": "testbot_1786697427637",
+    "status": "offline"
   },
   {
-    "name": "bot2",
-    "status": "Bot disconnected (exit code: 1)"
+    "name": "verify_1786697452158",
+    "status": "offline"
   },
   {
-    "name": "bot3",
+    "name": "AMBOT",
     "status": "offline"
   }
 ]

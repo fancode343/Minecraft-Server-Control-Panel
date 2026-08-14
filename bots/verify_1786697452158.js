@@ -5,8 +5,8 @@ const readline = require('readline');
 const client = bedrock.createClient({ 
   host: 'localhost', 
   port: 19132, 
-  version: '1.21.111', 
-  username: 'bot2', 
+  version: '1.21.50', 
+  username: 'verify_1786697452158', 
   offline: false,
 });
 

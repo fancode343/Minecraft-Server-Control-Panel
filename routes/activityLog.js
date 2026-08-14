@@ -10,7 +10,7 @@ const { activityLogPath } = require("../utils/folders");
 router.post("/activity-log", authRequired, async (req, res) => {
   const { user, action, timestamp } = req.body;
 
-  console.log("Request body received:", req.body);
+  //console.log("Request body received:", req.body);
 
   if (!user || !action || !timestamp) {
     console.error("Invalid activity data:", req.body);
@@ -30,7 +30,7 @@ router.post("/activity-log", authRequired, async (req, res) => {
     logs.push({ user, action, timestamp });
     fs.writeFileSync(activityLogPath, JSON.stringify(logs, null, 2), "utf8");
 
-    console.log("Activity logged successfully");
+    //console.log("Activity logged successfully");
     res.status(200).json({ message: "Activity logged successfully" });
   } catch (error) {
     console.error("Error logging activity:", error);

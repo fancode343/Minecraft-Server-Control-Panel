@@ -2,6 +2,7 @@ const { WebSocketServer } = require("ws");
 const path = require("path");
 const fs = require("fs");
 const server = require("../server"); // shared http server from server.js
+const { messagesFilePath } = require("../utils/folders");
 
 const MAX_LOG_COUNT = 200;
 const logs = [];
@@ -17,7 +18,6 @@ server.on("upgrade", (req, socket, head) => {
 
 console.log("     - WebSocket server attached to HTTP server");
 
-const messagesFilePath = path.join(__dirname, "..", "messages.json");
 if (!fs.existsSync(messagesFilePath)) {
   fs.writeFileSync(messagesFilePath, JSON.stringify([]), "utf8");
 }
