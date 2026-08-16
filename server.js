@@ -16,10 +16,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-// Create the raw HTTP server so WebSocket.js can attach to it via 'upgrade'
 const server = http.createServer(app);
 
-// Export BEFORE loading services — WebSocket.js requires this back via require("../server")
 module.exports = server;
 
 const PORT = 3000;
@@ -45,16 +43,6 @@ fs.readdirSync(routesPath).forEach((file) => {
   }
 });
 console.log("All routes loaded successfully.");
-
-const functionsPath = path.join(__dirname, "functions");
-console.log("Loading functions: ");
-fs.readdirSync(functionsPath).forEach((file) => {
-  if (file.endsWith(".js")) {
-    app.use(require(path.join(functionsPath, file)));
-    console.log(`   - ${file}`);
-  }
-});
-console.log("All functions loaded successfully.");
 
 app.get("/", require("./middleware/auth"), (req, res) => res.redirect("/dashboard"));
 app.get("/logout", (req, res) => req.session.destroy(() => res.redirect("/auth")));
