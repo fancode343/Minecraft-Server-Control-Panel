@@ -6,133 +6,135 @@
 <body>
 <%- include("../assets/nav") %> 
 
-
   <div class="container mt-5">
-    <h1>Welcome, <%= username %>!</h1>
-    <div class="btn-group mb-4">
-      <div class="d-flex align-items-center">
-        <button id="startButton" class="btn btn-success">Start Server</button>
-        <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
-        <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
-      </div>
-      <div class="d-flex align-items-center ml-3">
-        <button id="restartButton" class="btn btn-warning">Restart Server</button>
-        <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
-        <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
-      </div>
-      <div class="d-flex align-items-center ml-3">
-        <button id="stopButton" class="btn btn-danger">Stop Server</button>
-        <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
-        <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
-      </div>
-    </div>
-
-
-    <h3>Players-Status</h3>
-    <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"><h3 style="color: red;">Server is offline</h3></div>
-
-
-    <h4>__________________________</h4>
-    <h3>Send message to the server</h3>
-    <div><button class="btn-sendMSG" id="messageSRV">Send Message</button></div> <!-- Send MSG Button-->
-    <div id="customModal12" class="custom-modal12">
-      <div class="custom-modal-content">
-
-
-        <h3 id="modalTitle">Send a Message</h3>
-        <label><input type="radio" name="commandType" value="tellraw"> Tellraw</label>
-  <label><input type="radio" name="commandType" value="title"> Title</label>
-        </select>
-        <textarea id="modalInput12" placeholder="Enter your message here..." rows="3" style="width: 100%; padding: 8px;"></textarea>
+    <div class="dashboard-shell">
+      <div class="page-header">
         <div>
-          <button class="btn-submit" id="submitModal12">Submit</button>
-          <button class="btn-cancel" id="cancelModal12">Cancel</button>
+          <div class="eyebrow">Control Center</div>
+          <h1>Welcome, <%= username %></h1>
+        </div>
+        <div class="subtext">Server overview and quick controls</div>
+      </div>
+
+      <div class="panel-grid">
+        <div class="panel-card">
+          <h3>Server Controls</h3>
+          <div class="stacked-actions">
+            <button id="startButton" class="btn btn-modern btn-success">Start Server</button>
+            <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
+            <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
+
+            <button id="restartButton" class="btn btn-modern btn-warning">Restart Server</button>
+            <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
+            <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
+
+            <button id="stopButton" class="btn btn-modern btn-danger">Stop Server</button>
+            <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
+            <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>Players Status</h3>
+          <div id="playerContainer" class="mt-3 d-flex justify-content-start align-items-center"><h3 style="color: #fb7185; margin: 0;">Server is offline</h3></div>
+        </div>
+
+        <div class="panel-card">
+          <h3>Quick Actions</h3>
+          <div><button class="btn-sendMSG" id="messageSRV">Send Message</button></div>
+          <div id="customModal12" class="custom-modal12">
+            <div class="custom-modal-content">
+              <h3 id="modalTitle">Send a Message</h3>
+              <label class="d-block mb-2"><input type="radio" name="commandType" value="tellraw"> Tellraw</label>
+              <label class="d-block mb-3"><input type="radio" name="commandType" value="title"> Title</label>
+              <textarea id="modalInput12" placeholder="Enter your message here..." rows="3"></textarea>
+              <div class="d-flex justify-content-end gap-2">
+                <button class="btn-submit" id="submitModal12">Submit</button>
+                <button class="btn-cancel" id="cancelModal12">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>Gamerule</h3>
+          <div id="gameruleSettings">
+            <div class="form-group">
+              <label for="keepInventory">keepInventory:</label>
+              <select id="keepInventory" class="form-control">
+                <option value="true">True</option>
+                <option value="false">False</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="playersSleepingPercentage">playersSleepingPercentage:</label>
+              <input type="number" id="playersSleepingPercentage" class="form-control" min="0" max="100" value="50">
+            </div>
+
+            <button id="submitGamerule" class="btn btn-primary btn-modern">Submit</button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>World Backup</h3>
+          <div class="form-group">
+            <label for="backupOption">Choose Backup Option:</label>
+            <select id="backupOption" class="form-control">
+              <option value="dayToDay">Select Option</option>
+              <option value="dayToDay">DaytoDay</option>
+              <option value="hours24">24hours</option>
+            </select>
+          </div>
+
+          <div id="fileListContainer" style="margin-top: 10px;">
+            <ul id="fileList" class="list-group"></ul>
+          </div>
+
+          <button id="submitBackup" class="btn btn-primary btn-modern mt-3">Submit Backup</button>
+
+          <div id="backupModal" class="custom-modal">
+            <div class="custom-modal-content">
+              <h3>Confirm Backup</h3>
+              <p>Are you sure you want to backup this file? This action will stop the server.</p>
+              <div id="progressText" style="display: none; color: white; margin-top: 10px;">Progressing...</div>
+              <div class="d-flex justify-content-end mt-3">
+                <button id="confirmBackup" class="btn btn-danger">Confirm</button>
+                <button id="cancelBackup" class="btn btn-secondary ml-2">Cancel</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <h4>__________________________</h4>
-    <h3>Gamerule</h3>
-<div id="gameruleSettings">
-  <div class="form-group">
-    <label for="keepInventory">keepInventory:</label>
-    <select style="width: 200px;" id="keepInventory" class="form-control">
-      <option style="width: 10%;" value="true">True</option>
-      <option style="width: 10%;" value="false">False</option>
-    </select>
   </div>
 
-  <div class="form-group">
-    <label for="playersSleepingPercentage">playersSleepingPercentage:</label>
-    <input type="number" id="playersSleepingPercentage" class="form-control" style="width: 200px;" min="0" max="100" value="50">
-  </div>
-
-  <button id="submitGamerule" class="btn btn-primary">Submit</button>
-</div>
-
-<h4>__________________________</h4>
-<h3>World Backup</h3>
-
-<div class="form-group">
-  <label for="backupOption">Choose Backup Option:</label>
-  <select id="backupOption" class="form-control" style="width: 200px;">
-    <option value="dayToDay">Select Option</option>
-    <option value="dayToDay">DaytoDay</option>
-    <option value="hours24">24hours</option>
-  </select>
-</div>
-
-<div id="fileListContainer" style="margin-top: 10px;">
-  <ul id="fileList" class="list-group"></ul>
-</div>
-
-<button id="submitBackup" class="btn btn-primary mt-3">Submit Backup</button>
-
-<!-- Confirmation Modal -->
-<div id="backupModal" class="custom-modal">
-  <div class="custom-modal-content">
-    <h3>Confirm Backup</h3>
-    <p>Are you sure you want to backup this file? This action will stop the server.</p>
-    <div id="progressText" style="display: none; color: white; margin-top: 10px;">Progressing...</div>
-    <div>
-      <button id="confirmBackup" class="btn btn-danger">Confirm</button>
-      <button id="cancelBackup" class="btn btn-secondary">Cancel</button>
-    </div>
-  </div>
-</div>
-
-
-  </div>
- 
-  
-
-  <!-- Modals -->
   <div id="customModal" class="custom-modal">
     <div class="custom-modal-content">
       <h3 id="modalTitle">Action Title</h3>
       <input type="text" id="modalInput" placeholder="Enter your input here..." />
-      <div>
+      <div class="d-flex justify-content-end mt-3">
         <button class="btn-submit" id="submitModal">Submit</button>
-        <button class="btn-cancel" id="cancelModal">Cancel</button>
+        <button class="btn-cancel ml-2" id="cancelModal">Cancel</button>
       </div>
     </div>
   </div>
 
   <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-content" style="background: rgba(15,23,42,0.98); border: 1px solid rgba(148,163,184,0.18); color: #e5eefb;">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(148,163,184,0.12);">
           <h5 class="modal-title" id="responseModalLabel">Server Response</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="modal-body" id="responseModalBody"></div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="border-top: 1px solid rgba(148,163,184,0.12);">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!--Chat Container-->
   <div id="chatContainer" class="chat-container">
     <div class="chat-header">
       <h5>Chat</h5>
@@ -145,10 +147,9 @@
     </div>
   </div>
   <button id="chatToggle" class="chat-toggle">💬</button>
-  
+
 <script>
  async function logActivity(action) {
-  // Generate a UTC+8 timestamp
   const options = { timeZone: "Asia/Shanghai", hour12: false };
   const formatter = new Intl.DateTimeFormat("en-US", {
     ...options,
@@ -162,16 +163,14 @@
 
   const utc8Date = new Date();
   const [datePart, timePart] = formatter.format(utc8Date).split(", ");
-  const [month, day, year] = datePart.split("/"); // Extract parts of the date
-  const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+  const [month, day, year] = datePart.split("/");
+  const timestamp = `${year}-${month}-${day}T${timePart}+08:00`;
 
   const payload = {
-    user: "<%= username %>", // Replace with dynamic username if needed
+    user: "<%= username %>",
     action,
     timestamp,
   };
-
-  console.log("Payload to be sent:", payload); // Debugging
 
   try {
     const response = await fetch("/activity-log", {
@@ -185,25 +184,18 @@
     if (!response.ok) {
       const errorData = await response.json();
       console.error("Failed to log activity:", errorData.error);
-    } else {
-      console.log("Activity logged:", payload);
     }
   } catch (error) {
     console.error("Error logging activity:", error);
   }
 }
-
 </script>
     <%- include("../assets/chatAssets/chat1.js") %>
-  
-  
-  
-  
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-  <script src="/assets/SSR.js"></script> <!--SSR function-->
+  <script src="/assets/SSR.js"></script>
 
   <script>
     const backupOption = document.getElementById("backupOption");
@@ -434,10 +426,6 @@
     }
   </script>
 
-
-
-  
-  
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {

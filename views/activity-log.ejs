@@ -6,81 +6,28 @@
  <%- include("../assets/nav") %> 
 
   <div class="container mt-5">
-    <h1>Welcome, <%= username %>!</h1>
-    <div class="btn-group mb-4">
-      <div class="d-flex align-items-center">
-        <button id="startButton" class="btn btn-success">Start Server</button>
-        <div id="startSpinner" class="spinner-border text-success ml-2" role="status" style="display: none;"></div>
-        <span id="startCheck" class="text-success ml-2" style="display: none;">✔</span>
+    <div class="dashboard-shell">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Activity Feed</div>
+          <h1>Panel Logs</h1>
+        </div>
+        <div class="subtext">Recent server actions for <%= username %></div>
       </div>
-      <div class="d-flex align-items-center ml-3">
-        <button id="restartButton" class="btn btn-warning">Restart Server</button>
-        <div id="restartSpinner" class="spinner-border text-warning ml-2" role="status" style="display: none;"></div>
-        <span id="restartCheck" class="text-success ml-2" style="display: none;">✔</span>
-      </div>
-      <div class="d-flex align-items-center ml-3">
-        <button id="stopButton" class="btn btn-danger">Stop Server</button>
-        <div id="stopSpinner" class="spinner-border text-danger ml-2" role="status" style="display: none;"></div>
-        <span id="stopCheck" class="text-success ml-2" style="display: none;">✔</span>
-      </div>
+
+      <div id="activityLogsContainer" aria-live="polite"></div>
     </div>
-
-    <h2>Panel-Logs</h2>
-    <div id="activityLogsContainer" style="width: 100%; height: 400px; overflow-y: auto; background: #222; color: #eee; padding: 10px; border: 1px solid #555; font-family: monospace;"></div>
-    
-    <script>
-      async function loadActivityLogs() {
-        try {
-          const response = await fetch('/activitylogss');
-          if (!response.ok) {
-            throw new Error('Failed to load activity logs.');
-          }
-    
-          // Parse and sort logs by timestamp
-          const logs = await response.json();
-          const sortedLogs = logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    
-          const container = document.getElementById('activityLogsContainer');
-          container.innerHTML = ''; // Clear existing logs
-    
-          sortedLogs.forEach((log) => {
-            // Create a styled log entry
-            const logEntry = document.createElement('div');
-            logEntry.style.padding = '5px 10px';
-            logEntry.style.marginBottom = '5px';
-            logEntry.style.borderBottom = '1px solid #444';
-    
-            logEntry.innerHTML = `
-              <div><strong>Who:</strong> ${log.user}</div>
-              <div><strong>Action:</strong> ${log.action}</div>
-              <div><strong>Time:</strong> ${new Date(log.timestamp).toLocaleString()}</div>
-            `;
-            container.appendChild(logEntry);
-          });
-    
-          // Scroll to the bottom
-          container.scrollTop = container.scrollHeight;
-        } catch (error) {
-          console.error('Error loading activity logs:', error);
-          document.getElementById('activityLogsContainer').innerText = 'Failed to load activity logs.';
-        }
-      }
-    
-      // Load logs on DOMContentLoaded
-      document.addEventListener('DOMContentLoaded', loadActivityLogs);
-    </script>
-
-  
+  </div>
 
   <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-content" style="background: rgba(15,23,42,0.98); border: 1px solid rgba(148,163,184,0.18); color: #e5eefb;">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(148,163,184,0.12);">
           <h5 class="modal-title" id="responseModalLabel">Server Response</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="modal-body" id="responseModalBody"></div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="border-top: 1px solid rgba(148,163,184,0.12);">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
       </div>
@@ -99,17 +46,54 @@
     </div>
   </div>
   <button id="chatToggle" class="chat-toggle">💬</button>
-  
+
+  <script>
+      async function loadActivityLogs() {
+        try {
+          const response = await fetch('/activitylogss');
+          if (!response.ok) {
+            throw new Error('Failed to load activity logs.');
+          }
+
+          const logs = await response.json();
+          const sortedLogs = logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          const container = document.getElementById('activityLogsContainer');
+          container.innerHTML = '';
+
+          if (!sortedLogs.length) {
+            container.innerHTML = '<div class="log-entry"><div><strong>No activity yet.</strong></div></div>';
+            return;
+          }
+
+          sortedLogs.forEach((log) => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+              <div><strong>Who:</strong> ${log.user}</div>
+              <div><strong>Action:</strong> ${log.action}</div>
+              <div><strong>Time:</strong> ${new Date(log.timestamp).toLocaleString()}</div>
+            `;
+            container.appendChild(logEntry);
+          });
+
+          container.scrollTop = container.scrollHeight;
+        } catch (error) {
+          console.error('Error loading activity logs:', error);
+          document.getElementById('activityLogsContainer').innerHTML = '<div class="log-entry"><div><strong>Failed to load activity logs.</strong></div></div>';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', loadActivityLogs);
+  </script>
+
   <%- include("../assets/chatAssets/chat1.js") %>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
- 
-  <script src="/assets/SSR.js"></script> <!--SSR function-->
+  <script src="/assets/SSR.js"></script>
 
 <script>
   async function logActivity(action) {
-   // Generate a UTC+8 timestamp
    const options = { timeZone: "Asia/Shanghai", hour12: false };
    const formatter = new Intl.DateTimeFormat("en-US", {
      ...options,
@@ -120,40 +104,35 @@
      minute: "2-digit",
      second: "2-digit",
    });
- 
+
    const utc8Date = new Date();
    const [datePart, timePart] = formatter.format(utc8Date).split(", ");
-   const [month, day, year] = datePart.split("/"); // Extract parts of the date
-   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
- 
+   const [month, day, year] = datePart.split("/");
+   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`;
+
    const payload = {
-     user: "<%= username %>", // Replace with dynamic username if needed
+     user: "<%= username %>",
      action,
      timestamp,
    };
- 
-   console.log("Payload to be sent:", payload); // Debugging
- 
+
    try {
-     const response = await fetch(`/activity-log`, {     //Bugo jud ning ChatGPT Ga lisod lisod ra sa kinabuhi nag http://localhost:3000 pajud hays
+     const response = await fetch(`/activity-log`, {
        method: "POST",
        headers: {
          "Content-Type": "application/json",
        },
        body: JSON.stringify(payload),
      });
- 
+
      if (!response.ok) {
        const errorData = await response.json();
        console.error("Failed to log activity:", errorData.error);
-     } else {
-       console.log("Activity logged:", payload);
      }
    } catch (error) {
      console.error("Error logging activity:", error);
    }
  }
- 
- </script>
+</script>
 </body>
 </html>

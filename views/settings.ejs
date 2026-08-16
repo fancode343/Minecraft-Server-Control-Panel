@@ -1,66 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <style>
-    .container {
-      margin-top: 50px;
-    }
-    .settings-form {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background-color: #f9f9f9;
-    }
-    .message {
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
-    }
-    .error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-    .success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-  </style>
-</head>
-<body>
-<%- include("../assets/navSettings") %> 
+<%- include("../assets/head") %>
+<body style="background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh;">
+<%- include("../assets/navSettings") %>
 
-  <div class="container">
-    <h1>Welcome, <%= username %>!</h1>
-    <h2>Settings</h2>
-    <form class="settings-form" action="/save-settings" method="POST">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" class="form-control" id="username" name="username" value="<%= username %>" readonly>
-      </div>
-      <div class="form-group">
-        <label for="oldPassword">Old Password</label>
-        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter old password">
-      </div>
-      <div class="form-group">
-        <label for="password">New Password</label>
-        <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password">
-      </div>
-      <button type="submit" class="btn btn-primary">Save Settings</button>
-    </form>
+  <div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px; padding: 40px; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);">
+          <h1 style="color: #fff; font-weight: 700; margin-bottom: 10px; font-size: 2rem;">Welcome, <%= username %>!</h1>
+          <h2 style="color: rgba(255, 255, 255, 0.7); font-size: 1.3rem; margin-bottom: 30px; font-weight: 300;">Account Settings</h2>
+          
+          <% if (typeof error !== 'undefined') { %>
+            <div style="background: rgba(248, 215, 218, 0.2); border-left: 4px solid #f8d7da; color: #ffb3b3; padding: 15px; border-radius: 8px; margin-bottom: 20px; backdrop-filter: blur(5px);">
+              <%= error %>
+            </div>
+          <% } %>
 
-    <% if (typeof error !== 'undefined') { %>
-      <p class="message error"><%= error %></p>
-    <% } %>
+          <% if (typeof success !== 'undefined') { %>
+            <div style="background: rgba(212, 237, 218, 0.2); border-left: 4px solid #d4edda; color: #90ee90; padding: 15px; border-radius: 8px; margin-bottom: 20px; backdrop-filter: blur(5px);">
+              <%= success %>
+            </div>
+          <% } %>
 
-    <% if (typeof success !== 'undefined') { %>
-      <p class="message success"><%= success %></p>
-    <% } %>
+          <form action="/save-settings" method="POST">
+            <div style="margin-bottom: 25px;">
+              <label for="username" style="color: rgba(255, 255, 255, 0.9); display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem;">Username</label>
+              <input type="text" id="username" name="username" value="<%= username %>" readonly style="width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; font-size: 0.95rem; cursor: not-allowed;" />
+            </div>
+
+            <div style="margin-bottom: 25px;">
+              <label for="oldPassword" style="color: rgba(255, 255, 255, 0.9); display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem;">Old Password</label>
+              <input type="password" id="oldPassword" name="oldPassword" placeholder="Enter your current password" style="width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; font-size: 0.95rem; transition: all 0.3s ease;" />
+            </div>
+
+            <div style="margin-bottom: 30px;">
+              <label for="password" style="color: rgba(255, 255, 255, 0.9); display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem;">New Password</label>
+              <input type="password" id="password" name="password" placeholder="Enter your new password" style="width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; font-size: 0.95rem; transition: all 0.3s ease;" />
+            </div>
+
+            <button type="submit" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+              Save Settings
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

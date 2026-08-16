@@ -2,22 +2,185 @@
 <html lang="en">
  <%- include("../assets/head") %> 
   <style>
-    #message {
-      margin: 10px 0;
-      padding: 10px;
-      border: 1px solid #ccc;
-      background-color: #f0f0f0;
-      display: none;
+    .properties-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
     }
-    #message.success { border-color: green; color: green; }
-    #message.error { border-color: red; color: red; }
+
+    .property-card {
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 18px;
+      padding: 1.5rem;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+    }
+
+    .property-card h4 {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group-modern {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group-modern label {
+      display: block;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    .form-group-modern input[type="text"],
+    .form-group-modern input[type="number"],
+    .form-group-modern select {
+      width: 100%;
+      padding: 0.85rem;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.78);
+      color: white;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group-modern input:focus,
+    .form-group-modern select:focus {
+      border-color: rgba(102, 126, 234, 0.6);
+      background: rgba(15, 23, 42, 0.88);
+      box-shadow: 0 0 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 0.8rem;
+      border: 2px solid rgba(148, 163, 184, 0.3);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.78);
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: rgba(102, 126, 234, 0.6);
+      color: white;
+      box-shadow: 0 0 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      width: 100%;
+      min-height: 62px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.7rem);
+      font-weight: 700;
+      color: var(--text);
+      min-width: 0;
+      flex: 1 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .save-btn {
+      background: linear-gradient(135deg, var(--success), #10b981);
+      color: #03140d;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(52, 211, 153, 0.4);
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: 1rem;
+    }
+
+    @media (max-width: 767px) {
+      .page-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .page-header h1 {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+      }
+
+      .save-btn {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+
+    .save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 211, 153, 0.6);
+    }
+
+    #message {
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: none;
+      backdrop-filter: blur(5px);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    #message.success {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      color: #90ee90;
+    }
+
+    #message.error {
+      background: rgba(248, 215, 218, 0.15);
+      border: 1px solid rgba(248, 215, 218, 0.5);
+      color: #ffb3b3;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 <body>
 <%- include("../assets/nav") %> 
 
 <script>
   async function logActivity(action) {
-   // Generate a UTC+8 timestamp
    const options = { timeZone: "Asia/Shanghai", hour12: false };
    const formatter = new Intl.DateTimeFormat("en-US", {
      ...options,
@@ -31,54 +194,183 @@
  
    const utc8Date = new Date();
    const [datePart, timePart] = formatter.format(utc8Date).split(", ");
-   const [month, day, year] = datePart.split("/"); // Extract parts of the date
-   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`; // Format as ISO 8601
+   const [month, day, year] = datePart.split("/");
+   const timestamp = `${year}-${month}-${day}T${timePart}+08:00`;
  
    const payload = {
-     user: "<%= username %>", // Replace with dynamic username if needed
+     user: "<%= username %>",
      action,
      timestamp,
    };
  
-   console.log("Payload to be sent:", payload); // Debugging
- 
    try {
-     const response = await fetch("/activity-log", {
+     await fetch("/activity-log", {
        method: "POST",
-       headers: {
-         "Content-Type": "application/json",
-       },
+       headers: { "Content-Type": "application/json" },
        body: JSON.stringify(payload),
      });
- 
-     if (!response.ok) {
-       const errorData = await response.json();
-       console.error("Failed to log activity:", errorData.error);
-     } else {
-       console.log("Activity logged:", payload);
-     }
    } catch (error) {
      console.error("Error logging activity:", error);
    }
  }
- 
- </script>
- 
+</script>
 
-  <div class="container mt-5">
-    <h1 class="mt-4">Edit Server Properties</h1>
+<br>
+<br>
+<br>
+  <div class="container" style="max-width: 1400px; padding-top: 2rem; padding-bottom: 3rem;">
+    <div class="page-header">
+      <h1>Server Properties</h1>
+      <button type="submit" form="properties-form" class="save-btn">💾 Save Changes</button>
+    </div>
+    
     <div id="message" class="alert"></div>
 
     <form id="properties-form">
-      <% for (const key in properties) { %>
-        <div class="form-group">
-          <label for="<%= key %>"><%= key %>:</label>
-          <input type="text" class="form-control" id="<%= key %>" name="<%= key %>" value="<%= properties[key] %>">
+      <div class="properties-grid">
+        
+        <!-- Server Information -->
+        <div class="property-card">
+          <h4>📋 Server Information</h4>
+          <div class="form-group-modern">
+            <label for="server-name">Server Name</label>
+            <input type="text" id="server-name" name="server-name" value="<%= properties['server-name'] || 'Dedicated Server' %>">
+          </div>
+          <div class="form-group-modern">
+            <label for="max-players">Max Players</label>
+            <input type="number" id="max-players" name="max-players" value="<%= properties['max-players'] || 10 %>" min="1" max="9999">
+          </div>
         </div>
-      <% } %>
-      <button type="submit" class="btn btn-primary">Save</button>
+
+        <!-- Gameplay -->
+        <div class="property-card">
+          <h4>🎮 Gameplay</h4>
+          <div class="form-group-modern">
+            <label for="gamemode">Game Mode</label>
+            <select id="gamemode" name="gamemode">
+              <option value="survival" <%= properties['gamemode'] === 'survival' ? 'selected' : '' %>>Survival</option>
+              <option value="creative" <%= properties['gamemode'] === 'creative' ? 'selected' : '' %>>Creative</option>
+              <option value="adventure" <%= properties['gamemode'] === 'adventure' ? 'selected' : '' %>>Adventure</option>
+              <option value="hardcore" <%= properties['gamemode'] === 'hardcore' ? 'selected' : '' %>>Hardcore</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty" name="difficulty">
+              <option value="peaceful" <%= properties['difficulty'] === 'peaceful' ? 'selected' : '' %>>Peaceful</option>
+              <option value="easy" <%= properties['difficulty'] === 'easy' ? 'selected' : '' %>>Easy</option>
+              <option value="normal" <%= properties['difficulty'] === 'normal' ? 'selected' : '' %>>Normal</option>
+              <option value="hard" <%= properties['difficulty'] === 'hard' ? 'selected' : '' %>>Hard</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Game Rules -->
+        <div class="property-card">
+          <h4>⚙️ Game Rules</h4>
+          <div class="form-group-modern">
+            <label>Force Game Mode</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['force-gamemode'] === 'true' ? 'active' : '' %>" data-toggle="force-gamemode" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['force-gamemode'] !== 'true' ? 'active' : '' %>" data-toggle="force-gamemode" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="force-gamemode" name="force-gamemode" value="<%= properties['force-gamemode'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Allow Cheats</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['allow-cheats'] === 'true' ? 'active' : '' %>" data-toggle="allow-cheats" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['allow-cheats'] !== 'true' ? 'active' : '' %>" data-toggle="allow-cheats" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="allow-cheats" name="allow-cheats" value="<%= properties['allow-cheats'] || 'false' %>">
+          </div>
+        </div>
+
+        <!-- Network -->
+        <div class="property-card">
+          <h4>🌐 Network</h4>
+          <div class="form-group-modern">
+            <label for="server-port">Server Port (IPv4)</label>
+            <input type="number" id="server-port" name="server-port" value="<%= properties['server-port'] || 19132 %>" min="1" max="65535">
+          </div>
+          <div class="form-group-modern">
+            <label for="server-portv6">Server Port (IPv6)</label>
+            <input type="number" id="server-portv6" name="server-portv6" value="<%= properties['server-portv6'] || 19133 %>" min="1" max="65535">
+          </div>
+          <div class="form-group-modern">
+            <label>Online Mode</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['online-mode'] === 'true' ? 'active' : '' %>" data-toggle="online-mode" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['online-mode'] !== 'true' ? 'active' : '' %>" data-toggle="online-mode" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="online-mode" name="online-mode" value="<%= properties['online-mode'] || 'true' %>">
+          </div>
+        </div>
+
+        <!-- Security & Access -->
+        <div class="property-card">
+          <h4>🔐 Security & Access</h4>
+          <div class="form-group-modern">
+            <label>Allow List</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['allow-list'] === 'true' ? 'active' : '' %>" data-toggle="allow-list" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['allow-list'] !== 'true' ? 'active' : '' %>" data-toggle="allow-list" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="allow-list" name="allow-list" value="<%= properties['allow-list'] || 'true' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Enable LAN Visibility</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['enable-lan-visibility'] === 'true' ? 'active' : '' %>" data-toggle="enable-lan-visibility" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['enable-lan-visibility'] !== 'true' ? 'active' : '' %>" data-toggle="enable-lan-visibility" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="enable-lan-visibility" name="enable-lan-visibility" value="<%= properties['enable-lan-visibility'] || 'true' %>">
+          </div>
+        </div>
+
+        <!-- Advanced -->
+        <div class="property-card">
+          <h4>⚡ Advanced</h4>
+          <div class="form-group-modern">
+            <label for="level-name">Level Name</label>
+            <input type="text" id="level-name" name="level-name" value="<%= properties['level-name'] || 'Bedrock level' %>" placeholder="Bedrock level">
+          </div>
+          <div class="form-group-modern">
+            <label for="level-seed">Level Seed</label>
+            <input type="text" id="level-seed" name="level-seed" value="<%= properties['level-seed'] || '' %>" placeholder="Optional seed">
+          </div>
+          <div class="form-group-modern">
+            <label for="view-distance">View Distance</label>
+            <input type="number" id="view-distance" name="view-distance" value="<%= properties['view-distance'] || 32 %>" min="5" step="1">
+          </div>
+          <div class="form-group-modern">
+            <label for="transport">Transport</label>
+            <input type="text" id="transport" name="transport" value="<%= properties['transport'] || 'default' %>" placeholder="e.g., default">
+          </div>
+        </div>
+
+      </div>
     </form>
   </div>
+
+  <script>
+    // Handle toggle buttons
+    document.querySelectorAll('.toggle-btn').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const fieldName = this.dataset.toggle;
+        const value = this.dataset.value;
+        
+        // Update the hidden input value
+        document.getElementById(fieldName).value = value;
+        
+        // Update button states
+        const siblings = this.parentElement.querySelectorAll('.toggle-btn');
+        siblings.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
 
   <div id="chatContainer" class="chat-container">
     <div class="chat-header">

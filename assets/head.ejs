@@ -9,24 +9,172 @@
     <meta property="og:image" content="/assets/content.jpg">
     <meta name="googlebot" content="noindex">
     <meta property="og:site_name" content="EPSTIENSMP">
-    <title>Control Panel | Singularity</title>
+    <title>Control Panel | <%= serverName || "Minecraft Server" %></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/chatAssets/chat.css">
   <style>
-    #logs {
-      width: 100%;
-      height: 400px;
-      overflow-y: scroll;
-      background: #000;
-      color: #0f0;
-      padding: 10px;
-      border: 1px solid #333;
-      font-family: monospace;
+    :root {
+      --bg-900: #07111f;
+      --bg-800: #0d1728;
+      --bg-700: #101d31;
+      --panel: rgba(15, 23, 42, 0.78);
+      --panel-strong: rgba(15, 23, 42, 0.96);
+      --border: rgba(148, 163, 184, 0.18);
+      --primary: #60a5fa;
+      --primary-strong: #3b82f6;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #fb7185;
+      --text: #e5eefb;
+      --muted: #9fb3ca;
+      --shadow: 0 20px 40px rgba(2, 6, 23, 0.5);
     }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background:
+        radial-gradient(circle at top, rgba(59, 130, 246, 0.22), transparent 28%),
+        linear-gradient(135deg, var(--bg-900) 0%, #030712 45%, var(--bg-800) 100%);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      letter-spacing: 0.01em;
+      padding-top: 70px;
+    }
+
+    @media (max-width: 991.98px) {
+      body {
+        padding-top: 65px;
+      }
+    }
+
+    .container {
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+    }
+
+    .dashboard-shell {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .page-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.7rem);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .page-header .subtext {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .panel-card {
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.2rem 1.2rem 1rem;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+    }
+
+    .panel-card h3,
+    .panel-card h4 {
+      margin-bottom: 1rem;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stacked-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .btn-modern {
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-weight: 600;
+      letter-spacing: 0.015em;
+      padding: 0.7rem 1.1rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-modern:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #10b981);
+      border-color: rgba(16, 185, 129, 0.7);
+      color: #04120d;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, var(--warning), #f59e0b);
+      border-color: rgba(245, 158, 11, 0.7);
+      color: #2f1f00;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #ef4444);
+      border-color: rgba(239, 68, 68, 0.7);
+      color: white;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      border-color: rgba(96, 165, 250, 0.7);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.22);
+      color: var(--text);
+    }
+
     #playerContainer {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
+      gap: 0.9rem;
+      padding-top: 0.25rem;
     }
 
     .player {
@@ -34,50 +182,54 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
+      min-width: 72px;
     }
 
     .player-avatar {
       position: relative;
-      width: 50px;
-      height: 50px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: url('https://i.pinimg.com/736x/3d/4a/5b/3d4a5b43754727abdcdf23e224545e7b.jpg') no-repeat center center;
       background-size: cover;
       cursor: pointer;
-      border: 2px solid #333;
+      border: 2px solid rgba(96, 165, 250, 0.7);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
     }
 
     .player-name {
-      margin-top: 5px;
-      font-size: 12px;
-      color: white;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text);
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
 
     .context-menu {
       position: absolute;
-      top: 50px;
+      top: 60px;
       left: 0;
-      background: #343a40;
-      border-radius: 5px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 10px;
       display: none;
       flex-direction: column;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+      box-shadow: 0px 10px 24px rgba(0, 0, 0, 0.3);
       z-index: 1000;
+      overflow: hidden;
     }
 
     .context-menu button {
       background: transparent;
       border: none;
-      color: white;
-      padding: 10px;
+      color: var(--text);
+      padding: 0.8rem 1rem;
       cursor: pointer;
       text-align: left;
       width: 100%;
     }
 
     .context-menu button:hover {
-      background: #495057;
+      background: rgba(96, 165, 250, 0.12);
     }
 
     .status-indicator {
@@ -88,118 +240,164 @@
       height: 10px;
       border-radius: 50%;
       border: 2px solid white;
+      background: var(--success);
     }
 
-    /* Modal Styles */
-    .custom-modal {
+    .custom-modal,
+    .custom-modal12 {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
+      background: rgba(2, 6, 23, 0.6);
       z-index: 2000;
+      backdrop-filter: blur(4px);
     }
 
     .custom-modal-content {
-      background-color: #343a40;
-      padding: 20px;
-      border-radius: 8px;
-      width: 300px;
-      text-align: center;
-      color: white;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 18px;
+      width: min(92vw, 420px);
+      text-align: left;
+      color: var(--text);
+      box-shadow: var(--shadow);
     }
 
     .custom-modal-content h3 {
-      margin-bottom: 15px;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      font-weight: 700;
     }
 
-    .custom-modal-content input {
+    .custom-modal-content input,
+    .custom-modal-content textarea,
+    .custom-modal-content select,
+    .form-control {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 15px;
-      border: 1px solid #495057;
-      border-radius: 5px;
-      background-color: #495057;
+      padding: 1rem 0.9rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.78);
+      color: var(--text);
+      min-height: 45px;
+      font-size: 1rem;
+    }
+
+    .form-control select,
+    select.form-control {
+      height: auto;
+      min-height: 48px;
+      padding: 1rem;
+    }
+
+    .form-group label {
+      color: rgba(255, 255, 255, 0.9) !important;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .form-control option,
+    select option {
+      background: rgba(15, 23, 42, 0.95);
       color: white;
     }
 
-    .custom-modal-content button {
-      margin: 5px;
-      padding: 8px 15px;
+    .custom-modal-content input::placeholder,
+    .custom-modal-content textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .custom-modal-content button,
+    .btn-sendMSG,
+    .chat-toggle,
+    .close-chat,
+    #sendMessageButton {
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .custom-modal-content button:hover,
+    .btn-sendMSG:hover,
+    .chat-toggle:hover,
+    .close-chat:hover,
+    #sendMessageButton:hover {
+      transform: translateY(-1px);
     }
 
     .custom-modal-content .btn-submit {
-      background-color: #28a745;
-      color: white;
-    }
-
-    .custom-modal-content .btn-submit:hover {
-      background-color: #218838;
+      background: linear-gradient(135deg, var(--success), #10b981);
+      color: #03140d;
     }
 
     .custom-modal-content .btn-cancel {
-      background-color: #dc3545;
-      color: white;
+      background: rgba(148, 163, 184, 0.16);
+      color: var(--text);
     }
 
-    .custom-modal-content .btn-cancel:hover {
-      background-color: #c82333;
+    .btn-sendMSG {
+      font-size: 1.05rem;
+      padding: 0.8rem 1.3rem;
+      color: white;
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
     }
-    .custom-modal12 {
-  display: none; /* Initially hidden */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.5); /* Modal overlay */
-}
-.custom-modal-content {
-  background: rgb(66, 66, 66);
-  padding: 20px;
-  border-radius: 5px;
-  width: 300px;
-}
-.btn-sendMSG {
-  font-size: 20px;
-  box-shadow: 0 5px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-  border-radius: 6px;
-  background-color:rgb(6, 199, 247)
-}
-@media (max-width: 400px) {
-  .btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-    font-size: 12px; 
-    padding: 4px 8px;
-  }
-}
-@media (max-width: 400px) {
-  .btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-    font-size: 12px; 
-    padding: 4px 8px;
-  }
-}
-@media (max-width: 400px) {
-  .btn-warning {
-    background-color: #ffc107;
-    border-color: #ffc107;
-    font-size: 12px; 
-    padding: 4px 8px;
-  }
-}
+
+    #logs,
+    #activityLogsContainer {
+      width: 100%;
+      min-height: 300px;
+      max-height: 420px;
+      overflow-y: auto;
+      background: rgba(2, 6, 23, 0.7);
+      color: var(--text);
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-family: "Fira Code", Consolas, monospace;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.02);
+    }
+
+    .log-entry {
+      padding: 0.8rem 0.9rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(15, 23, 42, 0.36);
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    .log-entry strong { color: var(--primary); }
+
+    @media (max-width: 768px) {
+      .dashboard-shell {
+        padding: 1.2rem;
+      }
+
+      .page-header {
+        display: block;
+      }
+
+      .stacked-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .btn-success,
+      .btn-warning,
+      .btn-danger {
+        font-size: 12px;
+        padding: 0.55rem 0.8rem;
+      }
+    }
   </style>
 </head>

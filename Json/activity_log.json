@@ -683,5 +683,85 @@
     "user": "ADMIN",
     "action": "Stop bot - verify_1786697452158",
     "timestamp": "2026-08-16T21:04:12+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-16T22:56:16+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Restarted",
+    "timestamp": "2026-08-16T22:56:22+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-16T22:56:30+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Backup  - dayToDay, 1TqdBo9his1OEsCUDsxR2Zn5EnAoaNez0, backup-1767799271806.zip ",
+    "timestamp": "2026-08-16T23:07:27+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - testbot_1786697427637",
+    "timestamp": "2026-08-16T23:17:16+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Stop bot - testbot_1786697427637",
+    "timestamp": "2026-08-16T23:17:19+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Dedicated%20Server&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=false&allow-cheats=false&server-port=19132&server-portv6=19133&online-mode=true&allow-list=false&enable-lan-visibility=true&transport=raknet",
+    "timestamp": "2026-08-16T23:44:30+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-16T23:45:29+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-16T23:49:13+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Dedicated%20Server&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=true&allow-cheats=false&server-port=19132&server-portv6=19133&online-mode=true&allow-list=true&enable-lan-visibility=true&level-name=Bedrock%20level&level-seed=&view-distance=32&transport=raknet",
+    "timestamp": "2026-08-16T23:55:12+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Dedicated%20Server&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=true&allow-cheats=false&server-port=19132&server-portv6=19133&online-mode=true&allow-list=true&enable-lan-visibility=true&level-name=Bedrock%20level&level-seed=&view-distance=32&transport=raknet",
+    "timestamp": "2026-08-16T23:55:17+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-16T23:56:19+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Dedicated%20Server&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=false&allow-cheats=false&server-port=19132&server-portv6=19133&online-mode=false&allow-list=true&enable-lan-visibility=true&level-name=Bedrock%20level&level-seed=&view-distance=32&transport=raknet",
+    "timestamp": "2026-08-16T23:56:35+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Dedicated%20Server&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=false&allow-cheats=false&server-port=19132&server-portv6=19133&online-mode=true&allow-list=true&enable-lan-visibility=true&level-name=Bedrock%20level&level-seed=&view-distance=32&transport=raknet",
+    "timestamp": "2026-08-16T23:56:41+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-16T23:56:47+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-17T00:00:47+08:00"
   }
 ]

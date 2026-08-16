@@ -23,7 +23,25 @@ router.post("/editserver-properties", authRequired, (req, res) => {
   try {
     const fileContent = fs.readFileSync(serverPropertiesPath, "utf-8");
     const properties = parseProperties(fileContent);
-    const editableKeys = ["difficulty", "view-distance", "gamemode", "max-players", "server-name", "level-name", "texturepack-required", "level-seed", "tick-distance"];
+    const editableKeys = [
+      "difficulty",
+      "view-distance",
+      "gamemode",
+      "max-players",
+      "server-name",
+      "level-name",
+      "texturepack-required",
+      "level-seed",
+      "tick-distance",
+      "force-gamemode",
+      "allow-cheats",
+      "allow-list",
+      "online-mode",
+      "server-port",
+      "server-portv6",
+      "transport",
+      "enable-lan-visibility"
+    ];
 
     editableKeys.forEach((key) => {
       if (req.body[key] !== undefined) properties[key] = req.body[key];
