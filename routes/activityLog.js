@@ -39,7 +39,7 @@ router.post("/activity-log", authRequired, async (req, res) => {
 });
 
 router.get("/activitylogss", authRequired, (req, res) => {
-  const messageFilePath = path.join(__dirname, "../activity_log.json");
+  const messageFilePath = activityLogPath;
 
   // Read the JSON file
   fs.readFile(messageFilePath, 'utf8', (err, data) => {

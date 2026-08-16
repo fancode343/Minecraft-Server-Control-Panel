@@ -658,5 +658,30 @@
     "user": "ADMIN",
     "action": "Server Stop",
     "timestamp": "2026-08-16T20:51:10+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-16T21:00:32+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-16T21:00:39+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - testbot_1786697427637",
+    "timestamp": "2026-08-16T21:04:03+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - verify_1786697452158",
+    "timestamp": "2026-08-16T21:04:07+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Stop bot - verify_1786697452158",
+    "timestamp": "2026-08-16T21:04:12+08:00"
   }
 ]

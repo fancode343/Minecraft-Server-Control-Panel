@@ -5,7 +5,7 @@ const path = require("path");
 const router = express.Router();
 const sendMessageDis = require("../utils/discord");
 
-const credentialsPath = path.join(__dirname, "..", "credentials.json");
+const { credentialsPath }  = require("../utils/folders");
 
 router.get("/auth", (req, res) => {
   res.render("login");
