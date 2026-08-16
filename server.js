@@ -16,6 +16,29 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+app.use((req, res, next) => {
+  try {
+    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json"), "utf8"));
+    res.locals.serverName = settings.SERVER_NAME || "Minecraft Server";
+    res.locals.serverDescription = settings.SERVER_DESCRIPTION || "";
+    res.locals.serverIcon = settings.SERVER_ICON || "";
+    res.locals.loader = settings.LOADER || "BEDROCK";
+    res.locals.mcVersion = settings.MC_VERSION || "";
+    res.locals.serverIP = settings.SERVER_IP || "";
+    res.locals.serverPort = settings.SERVER_PORT || "";
+  } catch (err) {
+    console.error("Error loading settings.json for navbar:", err);
+    res.locals.serverName = "Minecraft Server";
+    res.locals.serverDescription = "";
+    res.locals.serverIcon = "";
+    res.locals.loader = "BEDROCK";
+    res.locals.mcVersion = settings.MC_VERSION || "";
+    res.locals.serverIP = settings.SERVER_IP || "";
+    res.locals.serverPort = settings.SERVER_PORT || "";
+  }
+  next();
+});
+
 const server = http.createServer(app);
 
 module.exports = server;

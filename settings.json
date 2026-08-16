@@ -1,0 +1,9 @@
+{
+  "SERVER_NAME": "SMP SAMPLE",
+  "SERVER_DESCRIPTION": "SMP SAMPLE",
+  "SERVER_ICON": "https://i.imgur.com/0Z8Q6kD.png",
+  "LOADER":"BEDROCK", 
+  "MC_VERSION": "1.26.0",
+  "SERVER_IP": "localhost",
+  "SERVER_PORT": 19132
+}
