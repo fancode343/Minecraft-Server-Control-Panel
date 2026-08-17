@@ -763,5 +763,230 @@
     "user": "ADMIN",
     "action": "Server Stop",
     "timestamp": "2026-08-17T00:00:47+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T09:07:38+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-17T09:08:13+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T14:47:30+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-17T14:47:51+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Dedicated%20Server&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=false&allow-cheats=true&server-port=19132&server-portv6=19133&online-mode=false&allow-list=true&enable-lan-visibility=true&level-name=Bedrock%20level&level-seed=&view-distance=32&transport=raknet&tick-distance=4&max-threads=8&player-idle-timeout=30&compression-threshold=1&compression-algorithm=zlib&default-player-permission-level=member&disable-player-interaction=false&texturepack-required=false&disable-persona=false&disable-custom-skins=false&content-log-file-enabled=false&content-log-console-output-enabled=false&content-log-level=info&server-authoritative-movement-strict=false&server-authoritative-dismount-strict=false&server-authoritative-entity-interactions-strict=false&player-position-acceptance-threshold=0.5&player-movement-action-direction-threshold=0.85&server-authoritative-block-breaking-pick-range-scalar=1.5&chat-restriction=None&allow-outbound-script-debugging=false&allow-inbound-script-debugging=false&script-debugger-auto-attach=disabled&client-side-chunk-generation-enabled=true&block-network-ids-are-hashes=true&server-build-radius-ratio=Disabled",
+    "timestamp": "2026-08-17T14:48:29+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T14:48:37+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - testbot_1786697427637",
+    "timestamp": "2026-08-17T14:49:43+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - testbot_1786697427637",
+    "timestamp": "2026-08-17T14:49:52+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - verify_1786697452158",
+    "timestamp": "2026-08-17T14:49:57+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - testbot_1786697427637",
+    "timestamp": "2026-08-17T14:50:10+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Create a bot - BASTA",
+    "timestamp": "2026-08-17T14:50:49+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:50:54+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:51:09+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Start",
+    "timestamp": "2026-08-17T14:51:17+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:51:20+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Start",
+    "timestamp": "2026-08-17T14:51:33+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:51:36+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:51:42+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:52:05+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T14:57:14+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Stop bot - BASTA",
+    "timestamp": "2026-08-17T14:59:14+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T14:59:15+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:02:46+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:03:07+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:03:34+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:05:55+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Start",
+    "timestamp": "2026-08-17T15:06:05+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:06:10+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T15:11:09+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:11:18+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Stop",
+    "timestamp": "2026-08-17T15:12:03+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T15:12:25+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server Start",
+    "timestamp": "2026-08-17T15:12:42+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:12:45+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:12:53+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Stop bot - BASTA",
+    "timestamp": "2026-08-17T15:12:56+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:13:02+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:13:25+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-17T15:16:19+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "run bot - BASTA",
+    "timestamp": "2026-08-17T15:16:25+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "op \"GranGuorgeYT\"",
+    "timestamp": "2026-08-17T15:17:03+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "title \"GranGuorgeYT\" title HELLO",
+    "timestamp": "2026-08-17T15:17:14+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Message GranGuorgeYT, HELLO",
+    "timestamp": "2026-08-17T15:17:14+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "kick \"GranGuorgeYT\"\" Basta na kick",
+    "timestamp": "2026-08-17T15:17:43+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "kicked GranGuorgeYT Reason: Basta na kick",
+    "timestamp": "2026-08-17T15:17:43+08:00"
   }
 ]

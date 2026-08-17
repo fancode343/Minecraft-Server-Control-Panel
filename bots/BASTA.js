@@ -6,7 +6,7 @@ const client = bedrock.createClient({
   host: 'localhost', 
   port: 19132, 
   version: '1.26.40', 
-  username: 'AMBOT', 
+  username: 'BASTA', 
   offline: false,
 });
 

@@ -26,6 +26,7 @@ function savePlayers() {
 
 function updatePlayerStatus(playerName, status) {
   state.players[playerName] = status;
+  savePlayers();
 }
 loadPlayers();
 

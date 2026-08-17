@@ -2,13 +2,20 @@ const express = require("express");
 const { spawn } = require("child_process");
 const router = express.Router();
 const authRequired = require("../middleware/auth");
-const { broadcastLogs } = require("../services/WebSocket");
+const { broadcastLogs, getLogs } = require("../services/WebSocket");
 const state = require("../state");
 const { loadPlayers, savePlayers, updatePlayerStatus } = require("../services/loadPlayers");
 
+let lastProcessedLogIndex = 0;
+
 router.get("/getPlayers", authRequired, (req, res) => {
   if (state.minecraftProcess) {
-    state.logs.forEach((log) => {
+    const allLogs = getLogs();
+    // Only process new logs since last check
+    const newLogs = allLogs.slice(lastProcessedLogIndex);
+    lastProcessedLogIndex = allLogs.length;
+    
+    newLogs.forEach((log) => {
       const connectMatch = log.match(/Player connected: (.+?), xuid:/);
       if (connectMatch) updatePlayerStatus(connectMatch[1], "connected");
 
@@ -22,7 +29,6 @@ router.get("/getPlayers", authRequired, (req, res) => {
       }
     });
 
-    savePlayers();
     res.json(
       Object.entries(state.players).map(([name, status]) => ({ name, status }))
     );

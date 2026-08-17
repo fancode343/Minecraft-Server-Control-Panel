@@ -91,4 +91,4 @@ wss.on("connection", (ws) => {
   });
 });
 
-module.exports = { wss, broadcastLogs };
+module.exports = { wss, broadcastLogs, getLogs: () => logs };

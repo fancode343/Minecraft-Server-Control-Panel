@@ -345,7 +345,230 @@
           </div>
           <div class="form-group-modern">
             <label for="transport">Transport</label>
-            <input type="text" id="transport" name="transport" value="<%= properties['transport'] || 'default' %>" placeholder="e.g., default">
+            <select id="transport" name="transport">
+              <option value="raknet" <%= properties['transport'] === 'raknet' ? 'selected' : '' %>>RakNet</option>
+              <option value="default" <%= properties['transport'] === 'default' ? 'selected' : '' %>>Default</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label for="tick-distance">Tick Distance</label>
+            <input type="number" id="tick-distance" name="tick-distance" value="<%= properties['tick-distance'] || 4 %>" min="1">
+          </div>
+          <div class="form-group-modern">
+            <label for="max-threads">Max Threads</label>
+            <input type="number" id="max-threads" name="max-threads" value="<%= properties['max-threads'] || 8 %>" min="1">
+          </div>
+        </div>
+
+        <!-- Performance & Timeout -->
+        <div class="property-card">
+          <h4>⏱️ Performance & Timeout</h4>
+          <div class="form-group-modern">
+            <label for="player-idle-timeout">Player Idle Timeout (minutes)</label>
+            <input type="number" id="player-idle-timeout" name="player-idle-timeout" value="<%= properties['player-idle-timeout'] || 30 %>" min="0">
+          </div>
+          <div class="form-group-modern">
+            <label for="compression-threshold">Compression Threshold</label>
+            <input type="number" id="compression-threshold" name="compression-threshold" value="<%= properties['compression-threshold'] || 1 %>" min="0">
+          </div>
+          <div class="form-group-modern">
+            <label for="compression-algorithm">Compression Algorithm</label>
+            <select id="compression-algorithm" name="compression-algorithm">
+              <option value="zlib" <%= properties['compression-algorithm'] === 'zlib' ? 'selected' : '' %>>zlib</option>
+              <option value="snappy" <%= properties['compression-algorithm'] === 'snappy' ? 'selected' : '' %>>snappy</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Player & Permissions -->
+        <div class="property-card">
+          <h4>👥 Player & Permissions</h4>
+          <div class="form-group-modern">
+            <label for="default-player-permission-level">Default Player Permission Level</label>
+            <select id="default-player-permission-level" name="default-player-permission-level">
+              <option value="visitor" <%= properties['default-player-permission-level'] === 'visitor' ? 'selected' : '' %>>Visitor</option>
+              <option value="member" <%= properties['default-player-permission-level'] === 'member' ? 'selected' : '' %>>Member</option>
+              <option value="operator" <%= properties['default-player-permission-level'] === 'operator' ? 'selected' : '' %>>Operator</option>
+              <option value="custom" <%= properties['default-player-permission-level'] === 'custom' ? 'selected' : '' %>>Custom</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label>Disable Player Interaction</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['disable-player-interaction'] === 'true' ? 'active' : '' %>" data-toggle="disable-player-interaction" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['disable-player-interaction'] !== 'true' ? 'active' : '' %>" data-toggle="disable-player-interaction" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="disable-player-interaction" name="disable-player-interaction" value="<%= properties['disable-player-interaction'] || 'false' %>">
+          </div>
+        </div>
+
+        <!-- Content Restrictions -->
+        <div class="property-card">
+          <h4>📦 Content Restrictions</h4>
+          <div class="form-group-modern">
+            <label>Texturepack Required</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['texturepack-required'] === 'true' ? 'active' : '' %>" data-toggle="texturepack-required" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['texturepack-required'] !== 'true' ? 'active' : '' %>" data-toggle="texturepack-required" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="texturepack-required" name="texturepack-required" value="<%= properties['texturepack-required'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Disable Persona</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['disable-persona'] === 'true' ? 'active' : '' %>" data-toggle="disable-persona" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['disable-persona'] !== 'true' ? 'active' : '' %>" data-toggle="disable-persona" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="disable-persona" name="disable-persona" value="<%= properties['disable-persona'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Disable Custom Skins</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['disable-custom-skins'] === 'true' ? 'active' : '' %>" data-toggle="disable-custom-skins" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['disable-custom-skins'] !== 'true' ? 'active' : '' %>" data-toggle="disable-custom-skins" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="disable-custom-skins" name="disable-custom-skins" value="<%= properties['disable-custom-skins'] || 'false' %>">
+          </div>
+        </div>
+
+        <!-- Logging -->
+        <div class="property-card">
+          <h4>📝 Logging</h4>
+          <div class="form-group-modern">
+            <label>Content Log File Enabled</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['content-log-file-enabled'] === 'true' ? 'active' : '' %>" data-toggle="content-log-file-enabled" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['content-log-file-enabled'] !== 'true' ? 'active' : '' %>" data-toggle="content-log-file-enabled" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="content-log-file-enabled" name="content-log-file-enabled" value="<%= properties['content-log-file-enabled'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Content Log Console Output Enabled</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['content-log-console-output-enabled'] === 'true' ? 'active' : '' %>" data-toggle="content-log-console-output-enabled" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['content-log-console-output-enabled'] !== 'true' ? 'active' : '' %>" data-toggle="content-log-console-output-enabled" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="content-log-console-output-enabled" name="content-log-console-output-enabled" value="<%= properties['content-log-console-output-enabled'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label for="content-log-level">Content Log Level</label>
+            <select id="content-log-level" name="content-log-level">
+              <option value="info" <%= properties['content-log-level'] === 'info' ? 'selected' : '' %>>Info</option>
+              <option value="debug" <%= properties['content-log-level'] === 'debug' ? 'selected' : '' %>>Debug</option>
+              <option value="warning" <%= properties['content-log-level'] === 'warning' ? 'selected' : '' %>>Warning</option>
+              <option value="error" <%= properties['content-log-level'] === 'error' ? 'selected' : '' %>>Error</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Server Authority -->
+        <div class="property-card">
+          <h4>🔒 Server Authority</h4>
+          <div class="form-group-modern">
+            <label>Server Authoritative Movement Strict</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['server-authoritative-movement-strict'] === 'true' ? 'active' : '' %>" data-toggle="server-authoritative-movement-strict" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['server-authoritative-movement-strict'] !== 'true' ? 'active' : '' %>" data-toggle="server-authoritative-movement-strict" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="server-authoritative-movement-strict" name="server-authoritative-movement-strict" value="<%= properties['server-authoritative-movement-strict'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Server Authoritative Dismount Strict</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['server-authoritative-dismount-strict'] === 'true' ? 'active' : '' %>" data-toggle="server-authoritative-dismount-strict" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['server-authoritative-dismount-strict'] !== 'true' ? 'active' : '' %>" data-toggle="server-authoritative-dismount-strict" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="server-authoritative-dismount-strict" name="server-authoritative-dismount-strict" value="<%= properties['server-authoritative-dismount-strict'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Server Authoritative Entity Interactions Strict</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['server-authoritative-entity-interactions-strict'] === 'true' ? 'active' : '' %>" data-toggle="server-authoritative-entity-interactions-strict" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['server-authoritative-entity-interactions-strict'] !== 'true' ? 'active' : '' %>" data-toggle="server-authoritative-entity-interactions-strict" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="server-authoritative-entity-interactions-strict" name="server-authoritative-entity-interactions-strict" value="<%= properties['server-authoritative-entity-interactions-strict'] || 'false' %>">
+          </div>
+        </div>
+
+        <!-- Movement Thresholds -->
+        <div class="property-card">
+          <h4>📍 Movement Thresholds</h4>
+          <div class="form-group-modern">
+            <label for="player-position-acceptance-threshold">Player Position Acceptance Threshold</label>
+            <input type="number" id="player-position-acceptance-threshold" name="player-position-acceptance-threshold" value="<%= properties['player-position-acceptance-threshold'] || 0.5 %>" step="0.1" min="0">
+          </div>
+          <div class="form-group-modern">
+            <label for="player-movement-action-direction-threshold">Player Movement Action Direction Threshold</label>
+            <input type="number" id="player-movement-action-direction-threshold" name="player-movement-action-direction-threshold" value="<%= properties['player-movement-action-direction-threshold'] || 0.85 %>" step="0.01" min="0">
+          </div>
+          <div class="form-group-modern">
+            <label for="server-authoritative-block-breaking-pick-range-scalar">Block Breaking Pick Range Scalar</label>
+            <input type="number" id="server-authoritative-block-breaking-pick-range-scalar" name="server-authoritative-block-breaking-pick-range-scalar" value="<%= properties['server-authoritative-block-breaking-pick-range-scalar'] || 1.5 %>" step="0.1" min="0">
+          </div>
+        </div>
+
+        <!-- Chat & Scripting -->
+        <div class="property-card">
+          <h4>💬 Chat & Scripting</h4>
+          <div class="form-group-modern">
+            <label for="chat-restriction">Chat Restriction</label>
+            <select id="chat-restriction" name="chat-restriction">
+              <option value="None" <%= properties['chat-restriction'] === 'None' ? 'selected' : '' %>>None</option>
+              <option value="Muted" <%= properties['chat-restriction'] === 'Muted' ? 'selected' : '' %>>Muted</option>
+              <option value="Restricted" <%= properties['chat-restriction'] === 'Restricted' ? 'selected' : '' %>>Restricted</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label>Allow Outbound Script Debugging</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['allow-outbound-script-debugging'] === 'true' ? 'active' : '' %>" data-toggle="allow-outbound-script-debugging" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['allow-outbound-script-debugging'] !== 'true' ? 'active' : '' %>" data-toggle="allow-outbound-script-debugging" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="allow-outbound-script-debugging" name="allow-outbound-script-debugging" value="<%= properties['allow-outbound-script-debugging'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Allow Inbound Script Debugging</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['allow-inbound-script-debugging'] === 'true' ? 'active' : '' %>" data-toggle="allow-inbound-script-debugging" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['allow-inbound-script-debugging'] !== 'true' ? 'active' : '' %>" data-toggle="allow-inbound-script-debugging" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="allow-inbound-script-debugging" name="allow-inbound-script-debugging" value="<%= properties['allow-inbound-script-debugging'] || 'false' %>">
+          </div>
+          <div class="form-group-modern">
+            <label for="script-debugger-auto-attach">Script Debugger Auto Attach</label>
+            <select id="script-debugger-auto-attach" name="script-debugger-auto-attach">
+              <option value="disabled" <%= properties['script-debugger-auto-attach'] === 'disabled' ? 'selected' : '' %>>Disabled</option>
+              <option value="enabled" <%= properties['script-debugger-auto-attach'] === 'enabled' ? 'selected' : '' %>>Enabled</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Client & Network -->
+        <div class="property-card">
+          <h4>🌍 Client & Network</h4>
+          <div class="form-group-modern">
+            <label>Client Side Chunk Generation Enabled</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['client-side-chunk-generation-enabled'] === 'true' ? 'active' : '' %>" data-toggle="client-side-chunk-generation-enabled" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['client-side-chunk-generation-enabled'] !== 'true' ? 'active' : '' %>" data-toggle="client-side-chunk-generation-enabled" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="client-side-chunk-generation-enabled" name="client-side-chunk-generation-enabled" value="<%= properties['client-side-chunk-generation-enabled'] || 'true' %>">
+          </div>
+          <div class="form-group-modern">
+            <label>Block Network IDs Are Hashes</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn <%= properties['block-network-ids-are-hashes'] === 'true' ? 'active' : '' %>" data-toggle="block-network-ids-are-hashes" data-value="true">ON</button>
+              <button type="button" class="toggle-btn <%= properties['block-network-ids-are-hashes'] !== 'true' ? 'active' : '' %>" data-toggle="block-network-ids-are-hashes" data-value="false">OFF</button>
+            </div>
+            <input type="hidden" id="block-network-ids-are-hashes" name="block-network-ids-are-hashes" value="<%= properties['block-network-ids-are-hashes'] || 'true' %>">
+          </div>
+          <div class="form-group-modern">
+            <label for="server-build-radius-ratio">Server Build Radius Ratio</label>
+            <select id="server-build-radius-ratio" name="server-build-radius-ratio">
+              <option value="Disabled" <%= properties['server-build-radius-ratio'] === 'Disabled' ? 'selected' : '' %>>Disabled</option>
+              <option value="Limited" <%= properties['server-build-radius-ratio'] === 'Limited' ? 'selected' : '' %>>Limited</option>
+              <option value="Unlimited" <%= properties['server-build-radius-ratio'] === 'Unlimited' ? 'selected' : '' %>>Unlimited</option>
+            </select>
           </div>
         </div>
 
