@@ -100,7 +100,7 @@ router.post("/api/backup", authRequired, async (req, res) => {
 
     // Extract the new backup
     console.log(`Extracting ${fileName} using unzip...`);
-    const extractDir = path.join(__dirname, "server/worlds");
+    const { extractDir }  = require("../utils/folders")
     const unzipCommand = `unzip -o ${backupPath} -d ${extractDir}`;
 
     await new Promise((resolve, reject) => {

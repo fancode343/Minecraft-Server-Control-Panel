@@ -16,6 +16,8 @@ const allowlistPath = path.join(__dirname, "../server/allowlist.json");
 const credentialsPath = path.join(__dirname, "../Json/credentials.json");
 const messagesFilePath = path.join(__dirname, "../Json/messages.json");
 
+const extractDir = path.join(__dirname, "../server/worlds");
+
 if (!fs.existsSync(activityLogPath)) {
   fs.writeFileSync(activityLogPath, JSON.stringify([]), "utf8");
 }
@@ -34,4 +36,5 @@ module.exports = {
   allowlistPath,
   credentialsPath,
   messagesFilePath,
+  extractDir,
 };
