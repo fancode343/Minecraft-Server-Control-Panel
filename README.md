@@ -20,13 +20,22 @@ This control panel is built to improve efficiency, reduce management time, and p
 
 ## How it Works?
 **Add .env**
-- Paste your webhook url on line 14
-  - ```const WEBHOOK_URL = 'https://discord.com/api/webhooks/YOU_WENHOOK_URL';```
-- Put Your Google Drive Authentication on line 135-140 (For Backup purposes)
-  - ```const CLIENT_ID = "YOUR_ID";```
-  - ```const CLIENT_SECRET = "YOOUR_SECRET";```
-  - ```const REDIRECT_URI = "YOUR_URI";```
-  - ```const REFRESH_TOKEN = "YOUR_TOKEN";```
+```
+PORT=3000
+WS_PORT=8080
+SESSION_SECRET=your_super_secret_key
+
+//Google Drive (for backup)
+GOOGLE_CLIENT_ID=YOUR_CLIENT_ID
+GOOGLE_CLIENT_SECRET=YOUR_CLIENT_SECRET
+GOOGLE_REFRESH_TOKEN=YOUR_TOKEN
+DAYTODAY=YOUR_FOLDER_ID
+24hourse=YOUR_FOLDER_ID
+
+//Discord (for login logs)
+DISCORD_WEBHOOK_URL=YOUR_DISCORD_URL
+```
+
 
 **In your terminal**
 - Install need packages
