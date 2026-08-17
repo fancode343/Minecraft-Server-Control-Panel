@@ -10,7 +10,7 @@ function checkAndSyncServerName(settingsPath = path.join(__dirname, "../settings
 
   try {
     const properties = parseProperties(fs.readFileSync(filePath, "utf-8"));
-    const rawName = properties["motd"];
+    const rawName = properties["server-name"];
 
     if (rawName === undefined || rawName === null || rawName === "") {
       return null;
