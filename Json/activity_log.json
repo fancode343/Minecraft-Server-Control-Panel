@@ -33,5 +33,10 @@
     "user": "ADMIN",
     "action": "Server Stop",
     "timestamp": "2026-08-20T23:35:06+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "server-name=Motd%20Sample&max-players=10&gamemode=survival&difficulty=easy&force-gamemode=true&allow-cheats=true&server-port=19132&server-portv6=19133&online-mode=true&allow-list=true&enable-lan-visibility=true&level-name=Bedrock%20level&level-seed=&view-distance=32&transport=raknet&tick-distance=4&max-threads=8&player-idle-timeout=30&compression-threshold=1&compression-algorithm=zlib&default-player-permission-level=member&disable-player-interaction=false&texturepack-required=false&disable-persona=false&disable-custom-skins=false&content-log-file-enabled=false&content-log-console-output-enabled=false&content-log-level=info&server-authoritative-movement-strict=false&server-authoritative-dismount-strict=false&server-authoritative-entity-interactions-strict=false&player-position-acceptance-threshold=0.5&player-movement-action-direction-threshold=0.85&server-authoritative-block-breaking-pick-range-scalar=1.5&chat-restriction=None&allow-outbound-script-debugging=false&allow-inbound-script-debugging=false&script-debugger-auto-attach=disabled&client-side-chunk-generation-enabled=true&block-network-ids-are-hashes=true&server-build-radius-ratio=Disabled",
+    "timestamp": "2026-08-20T23:36:39+08:00"
   }
 ]
