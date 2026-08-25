@@ -62,13 +62,13 @@ router.get("/api/files", authRequired, async (req, res) => {
 router.post("/api/backup", authRequired, async (req, res) => {
   const { type, fileId, fileName } = req.body;
   if (!type || !fileId || !fileName) {
-    return res.status(400).send("Invalid backup request.");
+    return res.status(400).json({ error: "Invalid backup request." });
   }
 
   if (!isDriveConfigured()) {
-    return res.status(503).send(
-      "Google Drive backup is not configured. Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, and GOOGLE_REFRESH_TOKEN to enable this feature."
-    );
+    return res.status(503).json({
+      error: "Google Drive backup is not configured. Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, and GOOGLE_REFRESH_TOKEN to enable this feature.",
+    });
   }
 
   try {
@@ -117,10 +117,10 @@ router.post("/api/backup", authRequired, async (req, res) => {
     });
 
     console.log(`Extracted ${fileName} to ${extractDir}.`);
-    res.status(500).send("Backup completed and server stopped.");
+    return res.status(200).json({ message: "Backup completed and server stopped." });
   } catch (error) {
     console.error("Backup process failed:", error);
-    res.status(500).send("An error's occurred during the backup process.");
+    return res.status(500).json({ error: "An error occurred during the backup process." });
   }
 });
 
