@@ -28,13 +28,14 @@ app.use((req, res, next) => {
     res.locals.serverPort = settings.SERVER_PORT || "";
   } catch (err) {
     console.error("Error loading settings.json for navbar:", err);
+    // Fallback defaults when settings.json can't be read
     res.locals.serverName = "Minecraft Server";
     res.locals.serverDescription = "";
     res.locals.serverIcon = "";
     res.locals.loader = "BEDROCK";
-    res.locals.mcVersion = settings.MC_VERSION || "";
-    res.locals.serverIP = settings.SERVER_IP || "";
-    res.locals.serverPort = settings.SERVER_PORT || "";
+    res.locals.mcVersion = "";
+    res.locals.serverIP = "";
+    res.locals.serverPort = "";
   }
   next();
 });

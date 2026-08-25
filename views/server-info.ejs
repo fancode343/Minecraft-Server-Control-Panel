@@ -38,6 +38,17 @@
 
 
     </div>
+    <div class="mt-4" style="max-width: 520px;">
+      <h3>Panel Server Name</h3>
+      <form id="serverNameForm">
+        <div class="form-group">
+          <label for="serverName">Server name</label>
+          <input type="text" id="serverName" name="serverName" class="form-control" value="<%= serverName || 'Minecraft Server' %>" required maxlength="100">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Server Name</button>
+        <div id="serverNameMessage" class="mt-2" role="status"></div>
+      </form>
+    </div>
       <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -120,6 +131,37 @@
    }
  }
  
+ </script>
+
+ <script>
+   document.getElementById("serverNameForm").addEventListener("submit", async (event) => {
+     event.preventDefault();
+
+     const form = event.currentTarget;
+     const message = document.getElementById("serverNameMessage");
+     const serverName = form.elements.serverName.value.trim();
+
+     if (!serverName) {
+       message.textContent = "Server name is required.";
+       message.className = "mt-2 text-danger";
+       return;
+     }
+
+     try {
+       const response = await fetch("/save-server-name", {
+         method: "POST",
+         headers: { "Content-Type": "application/x-www-form-urlencoded" },
+         body: new URLSearchParams({ serverName }),
+       });
+       const result = await response.json();
+
+       message.textContent = result.message;
+       message.className = result.success ? "mt-2 text-success" : "mt-2 text-danger";
+     } catch (error) {
+       message.textContent = "Unable to update server name.";
+       message.className = "mt-2 text-danger";
+     }
+   });
  </script>
 </body>
 </html>
