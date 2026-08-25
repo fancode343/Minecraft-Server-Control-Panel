@@ -206,6 +206,13 @@
     const confirmBackup = document.getElementById("confirmBackup");
     const cancelBackup = document.getElementById("cancelBackup");
     const progressText = document.createElement("div");
+    const responseModal = new bootstrap.Modal(document.getElementById("responseModal"));
+    const responseModalBody = document.getElementById("responseModalBody");
+
+    function showBackupResponse(message) {
+      responseModalBody.innerText = message;
+      responseModal.show();
+    }
 
     progressText.id = "progressText";
     progressText.style.display = "none";
@@ -266,7 +273,7 @@
     // Show confirmation modal when "Submit Backup" is clicked
     submitBackup.addEventListener("click", () => {
         if (!selectedFileId || !selectedFileName) {
-            alert("Please select a file to backup.");
+            showBackupResponse("Please select a file to backup.");
             return;
         }
         backupModal.style.display = "flex";
@@ -287,19 +294,21 @@
                 fileName: selectedFileName,
             }),
         })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Backup failed: ${response.statusText}`);
-                }
-                return response.text();
+            .then(async (response) => {
+              const result = await response.json();
+              if (!response.ok) {
+                throw new Error(result.error || `Backup failed: ${response.statusText}`);
+              }
+              return result;
             })
             .then((result) => {
-                alert(result);
+              showBackupResponse(result.message || "Backup completed.");
                 backupModal.style.display = "none";
             })
             .catch((error) => {
                 console.error("Error:", error);
-                alert("An error occurred during the backup process.");
+                backupModal.style.display = "none";
+              showBackupResponse(error.message || "An error occurred during the backup process.");
             })
             .finally(() => {
                 // Hide the progressing text
