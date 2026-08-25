@@ -16,7 +16,8 @@ router.get("/editserver-properties", authRequired, (req, res) => {
       username: req.session.username || "Admin",
     });
   } catch (error) {
-    res.status(500).sendFile(path.join(__dirname, "", "../500.html"));
+    res.locals.Error = "Error reading server.properties file";
+    res.render("500");
     //res.status(500).send("Error reading server.properties file");
   }
 });
@@ -53,7 +54,8 @@ router.post("/editserver-properties", authRequired, (req, res) => {
     res.json({ success: true, message: "Server properties updated successfully" });
   } catch (error) {
     //res.status(500).json({ success: false, message: "Error updating server.properties file" });
-    res.status(500).sendFile(path.join(__dirname, "", "../500.html"));
+    res.locals.Error = "Error reading server.properties file";
+    res.render("500");
   }
 });
 

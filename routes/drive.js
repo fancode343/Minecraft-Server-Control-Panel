@@ -54,7 +54,8 @@ router.get("/api/files", authRequired, async (req, res) => {
     res.json(files);
   } catch (error) {
     console.error("Error listing files:", error);
-    res.status(500).json({ error: "Failed to retrieve files." });
+    //res.status(500).json({ error: "Failed to retrieve files." });
+    res.status(500).send("Failed to retrieve files.");
   }
 });
 
@@ -116,7 +117,7 @@ router.post("/api/backup", authRequired, async (req, res) => {
     });
 
     console.log(`Extracted ${fileName} to ${extractDir}.`);
-    res.send("Backup completed and server stopped.");
+    res.status(500).send("Backup completed and server stopped.");
   } catch (error) {
     console.error("Backup process failed:", error);
     res.status(500).send("An error's occurred during the backup process.");
