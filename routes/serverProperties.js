@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const fs = require("fs");
 const router = express.Router();
 const authRequired = require("../middleware/auth");
@@ -15,7 +16,8 @@ router.get("/editserver-properties", authRequired, (req, res) => {
       username: req.session.username || "Admin",
     });
   } catch (error) {
-    res.status(500).send("Error reading server.properties file");
+    res.status(500).sendFile(path.join(__dirname, "", "../500.html"));
+    //res.status(500).send("Error reading server.properties file");
   }
 });
 
@@ -50,7 +52,8 @@ router.post("/editserver-properties", authRequired, (req, res) => {
     fs.writeFileSync(serverPropertiesPath, stringifyProperties(properties), "utf-8");
     res.json({ success: true, message: "Server properties updated successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error updating server.properties file" });
+    //res.status(500).json({ success: false, message: "Error updating server.properties file" });
+    res.status(500).sendFile(path.join(__dirname, "", "../500.html"));
   }
 });
 
