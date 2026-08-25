@@ -1,8 +1,29 @@
 const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const { spawn } = require("child_process");
 const router = express.Router();
 const authRequired = require("../middleware/auth");
+
+router.post("/save-server-name", authRequired, (req, res) => {
+  const settingsPath = path.join(__dirname, "../settings.json");
+  const serverName = typeof req.body.serverName === "string" ? req.body.serverName.trim() : "";
+
+  if (!serverName) {
+    return res.status(400).json({ success: false, message: "Server name is required." });
+  }
+
+  try {
+    const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    settings.SERVER_NAME = serverName;
+    fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
+
+    res.json({ success: true, message: "Server name updated successfully." });
+  } catch (error) {
+    console.error("Error updating server name:", error);
+    res.status(500).json({ success: false, message: "Unable to update server name." });
+  }
+});
 
 router.post("/save-settings", authRequired, (req, res) => {
   const { oldPassword, password } = req.body;
