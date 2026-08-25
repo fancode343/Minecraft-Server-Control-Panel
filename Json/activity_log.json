@@ -83,5 +83,30 @@
     "user": "ADMIN",
     "action": "Server Backup  - hours24, 1eKJXW1MB_78FaKbEitFedLTw46Pu3Z7L, backup-1787148002080.zip ",
     "timestamp": "2026-08-25T22:15:28+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-25T22:39:00+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Command: list",
+    "timestamp": "2026-08-25T22:39:44+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Command: df",
+    "timestamp": "2026-08-25T22:41:51+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Server started",
+    "timestamp": "2026-08-25T22:41:55+08:00"
+  },
+  {
+    "user": "ADMIN",
+    "action": "Command: Hi",
+    "timestamp": "2026-08-25T22:42:04+08:00"
   }
 ]

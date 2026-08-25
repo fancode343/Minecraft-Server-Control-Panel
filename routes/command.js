@@ -11,7 +11,6 @@ router.post("/command", authRequired, (req, res) => {
   if (state.minecraftProcess) {
     state.minecraftProcess.stdin.write(`${command}\n`);
     broadcastLogs(`[Command]: ${command}`);
-    res.send("Command sent.");
   } else {
     broadcastLogs("[Error]: Server is not running");
     res.status(500).send("Server is not running.");
