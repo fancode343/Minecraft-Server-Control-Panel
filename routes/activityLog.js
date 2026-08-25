@@ -34,7 +34,8 @@ router.post("/activity-log", authRequired, async (req, res) => {
     res.status(200).json({ message: "Activity logged successfully" });
   } catch (error) {
     console.error("Error logging activity:", error);
-    res.status(500).json({ error: "Failed to log activity" });
+        res.locals.Error = "Failed to log activity";
+        res.render("500");
   }
 });
 
@@ -64,7 +65,9 @@ router.get("/activitylogss", authRequired, (req, res) => {
       res.json(logs);
     } catch (parseError) {
       console.error("Error parsing JSON:", parseError);
-      res.status(500).json({ error: "Invalid JSON format in activity_log.json." });
+      res.locals.Error = "Error reading server.properties file";
+        res.render("500");
+      //res.status(500).json({ error: "Invalid JSON format in activity_log.json." });
     }
   });
 });

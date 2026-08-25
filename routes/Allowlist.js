@@ -19,7 +19,8 @@ router.get("/getAllowlist", (req, res) => {
       res.json(allowlist); // Send allowlist as JSON
     } catch (parseError) {
       console.error("Error parsing allowlist.json:", parseError);
-      res.status(500).send("Internal Server Error");
+      res.locals.Error = "Internal Server Error.";
+      res.render("500");
     }
   });
 });
